@@ -1,12 +1,10 @@
-// src/navigation/Gate.tsx
+import { useSubscriptionStore } from "../features/subscription/subscription.store";
+
 export function useSubscriptionGate() {
-  /**
-   * STUB — real logic comes later
-   * This will eventually read from subscription store
-   */
-  const hasActiveSubscription = true;
+  const subscription = useSubscriptionStore();
 
   return {
-    hasAccess: hasActiveSubscription,
+    hasAccess: subscription.isActive,
+    tier: subscription.tier,
   };
 }
