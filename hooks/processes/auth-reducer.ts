@@ -1,9 +1,8 @@
 // reducers.js
 import { createSlice } from "@reduxjs/toolkit";
-import { combineReducers } from "redux";
 
 const initialState = {
-  isAuthenticated: false,
+  isAuthenticated: true,
 };
 
 const mySlice = createSlice({
@@ -23,12 +22,11 @@ const mySlice = createSlice({
   },
 });
 
-const rootReducer = combineReducers({
-  authReducer: mySlice.reducer,
-  login: mySlice.actions.login,
-  logout: mySlice.actions.logout,
-  signup: mySlice.actions.signup,
-  // Add more slices as needed
-});
+export const { login, logout, signup } = mySlice.actions;
+export const authReducer = mySlice.reducer;
 
-export default rootReducer;
+// const rootReducer = combineReducers({
+//   auth: mySlice.reducer,
+// });
+
+// export default rootReducer;
