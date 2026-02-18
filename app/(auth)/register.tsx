@@ -1,11 +1,25 @@
+import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
+import { registerRequest } from "@/hooks/processes/auth-reducer";
 import { Link, useRouter } from "expo-router";
+import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const handleSignup = () => {
-    // dispatch(login());
-    router.push("/dashboard");
+  const dispatch = useAppDispatch();
+
+  const { loading, error } = useAppSelector((state) => state.auth);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSignup = async () => {
+    const res: any = await dispatch(registerRequest({ name, email, password }));
+
+    if (res.meta.requestStatus === "fulfilled") {
+      router.replace("/dashboard");
+    }
   };
   return (
     <View className="flex-1 bg-slate-950 justify-center px-6">
@@ -21,31 +35,56 @@ export default function RegisterScreen() {
         <View className="mb-4">
           <Text className="text-slate-400 mb-2">Full Name</Text>
           <TextInput
+            placeholder="Full Name"
+            placeholderTextColor="#64748b"
+            className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
+            value={name}
+            onChangeText={setName}
+          />
+          {/* <TextInput
             placeholder="Enter your name"
             placeholderTextColor="#64748b"
             className="bg-slate-800 text-white p-4 rounded-2xl"
-          />
+          /> */}
         </View>
 
         {/* Email */}
         <View className="mb-4">
           <Text className="text-slate-400 mb-2">Email</Text>
+
           <TextInput
+            placeholder="Email"
+            placeholderTextColor="#64748b"
+            className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          {/* <TextInput
             placeholder="Enter your email"
             placeholderTextColor="#64748b"
             className="bg-slate-800 text-white p-4 rounded-2xl"
-          />
+          /> */}
         </View>
 
         {/* Password */}
         <View className="mb-6">
           <Text className="text-slate-400 mb-2">Password</Text>
+
           <TextInput
+            placeholder="Password"
+            placeholderTextColor="#64748b"
+            secureTextEntry
+            className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
+            value={password}
+            onChangeText={setPassword}
+          />
+          {/* <TextInput
             placeholder="Create a password"
             placeholderTextColor="#64748b"
             secureTextEntry
             className="bg-slate-800 text-white p-4 rounded-2xl"
-          />
+          /> */}
         </View>
 
         {/* Register Button */}
@@ -54,7 +93,7 @@ export default function RegisterScreen() {
           onPress={handleSignup}
         >
           <Text className="text-white text-center font-semibold text-lg">
-            Create Account
+            {loading ? "Creating..." : "Create Account"}
           </Text>
         </Pressable>
 

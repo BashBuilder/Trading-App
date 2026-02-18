@@ -1,32 +1,120 @@
 // reducers.js
-import { createSlice } from "@reduxjs/toolkit";
+import { login, register } from "@/services/auth.service";
+import {
+  clearToken,
+  getToken,
+  isTokenExpired,
+  saveToken,
+} from "@/services/token.service";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  isAuthenticated: true,
+type AuthState = {
+  user: any;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
 };
+
+const initialState: AuthState = {
+  user: null,
+  token: null,
+  loading: false,
+  error: null,
+  isAuthenticated: false,
+};
+
+export const hydrateAuth = createAsyncThunk(
+  "auth/hydrate",
+  async (_, { rejectWithValue }) => {
+    const token = await getToken();
+    if (!token) return null;
+    const expired = await isTokenExpired();
+    if (expired) {
+      await clearToken();
+      return null;
+    }
+
+    return token;
+  },
+);
+
+export const loginRequest = createAsyncThunk(
+  "auth/login",
+  async (
+    { email, password }: { email: string; password: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await login(email, password);
+      return res;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  },
+);
+
+export const registerRequest = createAsyncThunk(
+  "auth/register",
+  async (
+    {
+      email,
+      password,
+      name,
+    }: { email: string; password: string; name: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await register(email, password, name);
+      return res;
+    } catch (error: any) {
+      return rejectWithValue(error?.message || "Registration failed");
+    }
+  },
+);
 
 const mySlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    login: (state) => {
-      state.isAuthenticated = true;
-    },
     logout: (state) => {
+      state.user = null;
+      state.token = null;
       state.isAuthenticated = false;
+      clearToken();
     },
-    signup: (state) => {
+  },
+  extraReducers: (builder) => {
+    builder.addCase(loginRequest.fulfilled, (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
       state.isAuthenticated = true;
-    },
-    // Define your actions and reducers here
+      state.loading = false;
+      saveToken(action.payload.token, 3600); // Save token with 1 hour expiration
+    });
+    builder.addCase(loginRequest.rejected, (state, action) => {
+      state.error = action.payload as string;
+      state.loading = false;
+    });
+    builder.addCase(registerRequest.fulfilled, (state, action) => {
+      state.loading = false;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+      saveToken(action.payload.token, 3600); // Save token with 1 hour expiration
+    });
+    builder.addCase(registerRequest.rejected, (state, action: any) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(hydrateAuth.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.token = action.payload;
+        state.isAuthenticated = true;
+      }
+    });
   },
 });
 
-export const { login, logout, signup } = mySlice.actions;
+export const { logout } = mySlice.actions;
 export const authReducer = mySlice.reducer;
-
-// const rootReducer = combineReducers({
-//   auth: mySlice.reducer,
-// });
-
-// export default rootReducer;

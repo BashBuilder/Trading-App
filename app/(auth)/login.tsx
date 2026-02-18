@@ -1,33 +1,31 @@
-// import { useAppSelector } from "@/hooks/hooks";
-// import { ScrollView, Text } from "react-native";
-
-// export default function PaywallScreen() {
-//   // const auth = useSelector((state: RootState) => state.auth);
-//   const auth = useAppSelector((state) => state.auth);
-//   return (
-//     <ScrollView
-//       className="flex-1 bg-black py-6 "
-//       contentContainerClassName="p-6 gap-6"
-//     >
-//       <Text className="text-white text-2xl">
-//         Login screen {auth.isAuthenticated ? "true" : "false"}
-//       </Text>
-//     </ScrollView>
-//   );
-// }
-
-import { useAppDispatch } from "@/hooks/hooks";
-import { login } from "@/hooks/processes/auth-reducer";
+import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
+import { loginRequest } from "@/hooks/processes/auth-reducer";
 import { Link, useRouter } from "expo-router";
+import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 export default function LoginScreen() {
+  const [email, setEmail] = useState("");
+  const [pageError, setPageError] = useState("");
+  const [password, setPassword] = useState("");
+
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { loading, error } = useAppSelector((state) => state.auth);
 
-  const handleLogin = () => {
-    dispatch(login());
-    router.push("/dashboard");
+  const handleLogin = async () => {
+    try {
+      const res: any = await dispatch(loginRequest({ email, password }));
+      if (res.meta.requestStatus === "rejected") {
+        setPageError(res.payload);
+        return;
+      }
+      if (res.meta.requestStatus === "fulfilled") {
+        router.replace("/dashboard");
+      }
+    } catch (error: any) {
+      setPageError("An unexpected error occurred. Please try again.");
+    }
   };
 
   return (
@@ -43,23 +41,40 @@ export default function LoginScreen() {
         {/* Email */}
         <View className="mb-4">
           <Text className="text-slate-400 mb-2">Email</Text>
+
           <TextInput
+            placeholder="Email"
+            placeholderTextColor="#aaa"
+            className="bg-slate-800 p-4 text-white rounded-xl mb-4"
+            value={email}
+            onChangeText={setEmail}
+          />
+          {/* <TextInput
             placeholder="Enter your email"
             placeholderTextColor="#64748b"
             className="bg-slate-800 text-white p-4 rounded-2xl"
-          />
+          /> */}
         </View>
 
         {/* Password */}
         <View className="mb-6">
           <Text className="text-slate-400 mb-2">Password</Text>
-          <TextInput
+          {/* <TextInput
             placeholder="Enter your password"
             placeholderTextColor="#64748b"
             secureTextEntry
             className="bg-slate-800 text-white p-4 rounded-2xl"
+          /> */}
+          <TextInput
+            placeholder="Password"
+            secureTextEntry
+            placeholderTextColor="#aaa"
+            className="bg-slate-800 p-4 text-white rounded-xl mb-4"
+            value={password}
+            onChangeText={setPassword}
           />
         </View>
+        {error && <Text className="text-red-400">{error}</Text>}
 
         {/* Login Button */}
         <Pressable
@@ -67,7 +82,7 @@ export default function LoginScreen() {
           onPress={handleLogin}
         >
           <Text className="text-white text-center font-semibold text-lg">
-            Login
+            {loading ? "Loading..." : "Login"}
           </Text>
         </Pressable>
 

@@ -18,13 +18,53 @@
 //   // return <Redirect href="/tool" />;
 // }
 
+import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
+import { hydrateAuth } from "@/hooks/processes/auth-reducer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Dimensions, Pressable, ScrollView, Text, View } from "react-native";
 
 const { width } = Dimensions.get("window");
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const auth = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(hydrateAuth());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (auth.isAuthenticated) {
+      router.replace("/dashboard");
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.isAuthenticated]);
+
+  const checkOnboarding = async () => {
+    const seen = await AsyncStorage.getItem("onboardingSeen");
+
+    if (seen === "true") {
+      router.replace("/login"); // or dashboard if already logged in
+    } else {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkOnboarding();
+  }, []);
+
+  const handleFinish = async () => {
+    await AsyncStorage.setItem("onboardingSeen", "true");
+    router.replace("/login");
+  };
+
+  if (loading) return null;
 
   return (
     <View className="flex-1 bg-slate-950">
@@ -71,7 +111,7 @@ export default function OnboardingScreen() {
             </Text>
 
             <Pressable
-              onPress={() => router.replace("/login")}
+              onPress={handleFinish}
               className="bg-indigo-600 px-8 py-4 rounded-2xl mt-10"
             >
               <Text className="text-white font-semibold text-lg">
