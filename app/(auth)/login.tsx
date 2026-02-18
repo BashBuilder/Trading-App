@@ -25,6 +25,7 @@ export default function LoginScreen() {
       }
     } catch (error: any) {
       setPageError("An unexpected error occurred. Please try again.");
+      console.log("Login error:", error);
     }
   };
 
@@ -74,7 +75,7 @@ export default function LoginScreen() {
             onChangeText={setPassword}
           />
         </View>
-        {error && <Text className="text-red-400">{error}</Text>}
+        {error && <Text className="text-red-400">{error || pageError}</Text>}
 
         {/* Login Button */}
         <Pressable

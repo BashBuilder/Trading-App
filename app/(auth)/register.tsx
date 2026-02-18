@@ -87,6 +87,8 @@ export default function RegisterScreen() {
           /> */}
         </View>
 
+        {error && <Text className="text-red-400">{error}</Text>}
+
         {/* Register Button */}
         <Pressable
           className="bg-indigo-600 p-4 rounded-2xl active:opacity-80"
