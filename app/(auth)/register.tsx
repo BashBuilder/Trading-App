@@ -16,7 +16,6 @@ export default function RegisterScreen() {
 
   const handleSignup = async () => {
     const res: any = await dispatch(registerRequest({ name, email, password }));
-
     if (res.meta.requestStatus === "fulfilled") {
       router.replace("/dashboard");
     }
@@ -28,7 +27,6 @@ export default function RegisterScreen() {
         <Text className="text-4xl font-bold text-white">Create Account 🚀</Text>
         <Text className="text-slate-400 mt-2">Join us today</Text>
       </View>
-
       {/* Card */}
       <View className="bg-slate-900 p-6 rounded-3xl shadow-lg shadow-black/40">
         {/* Name */}
@@ -41,13 +39,7 @@ export default function RegisterScreen() {
             value={name}
             onChangeText={setName}
           />
-          {/* <TextInput
-            placeholder="Enter your name"
-            placeholderTextColor="#64748b"
-            className="bg-slate-800 text-white p-4 rounded-2xl"
-          /> */}
         </View>
-
         {/* Email */}
         <View className="mb-4">
           <Text className="text-slate-400 mb-2">Email</Text>
@@ -59,18 +51,10 @@ export default function RegisterScreen() {
             value={email}
             onChangeText={setEmail}
           />
-
-          {/* <TextInput
-            placeholder="Enter your email"
-            placeholderTextColor="#64748b"
-            className="bg-slate-800 text-white p-4 rounded-2xl"
-          /> */}
         </View>
-
         {/* Password */}
         <View className="mb-6">
           <Text className="text-slate-400 mb-2">Password</Text>
-
           <TextInput
             placeholder="Password"
             placeholderTextColor="#64748b"
@@ -79,15 +63,12 @@ export default function RegisterScreen() {
             value={password}
             onChangeText={setPassword}
           />
-          {/* <TextInput
-            placeholder="Create a password"
-            placeholderTextColor="#64748b"
-            secureTextEntry
-            className="bg-slate-800 text-white p-4 rounded-2xl"
-          /> */}
+          {error && (
+            <Text className="text-red-400 text-center p-2 bg-red-500/20">
+              {error}
+            </Text>
+          )}
         </View>
-
-        {error && <Text className="text-red-400">{error}</Text>}
 
         {/* Register Button */}
         <Pressable
@@ -98,7 +79,6 @@ export default function RegisterScreen() {
             {loading ? "Creating..." : "Create Account"}
           </Text>
         </Pressable>
-
         {/* Login Link */}
         <View className="flex-row justify-center mt-6">
           <Text className="text-slate-400">Already have an account?</Text>

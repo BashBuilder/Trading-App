@@ -1,5 +1,6 @@
 // reducers.js
-import { login, register } from "@/services/auth.service";
+import { users } from "@/constants/constants";
+import { register } from "@/services/auth.service";
 import {
   clearToken,
   getToken,
@@ -46,10 +47,28 @@ export const loginRequest = createAsyncThunk(
     { rejectWithValue },
   ) => {
     try {
-      const res = await login(email, password);
-      return res;
+      if (!email || !password) {
+        throw new Error("Kindly fill all fields");
+      }
+      await new Promise((res) => setTimeout(res, 1000)); // simulate delay
+      const user = users.find(
+        (u) => u.email === email && u.password === password,
+      );
+
+      if (!user) {
+        throw new Error("Invalid credentials");
+      }
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        },
+        token: `fake-jwt-token-${user.id}`,
+      };
     } catch (err: any) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err.message || "Error signing in, try again");
     }
   },
 );

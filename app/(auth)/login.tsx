@@ -42,7 +42,6 @@ export default function LoginScreen() {
         {/* Email */}
         <View className="mb-4">
           <Text className="text-slate-400 mb-2">Email</Text>
-
           <TextInput
             placeholder="Email"
             placeholderTextColor="#aaa"
@@ -50,22 +49,10 @@ export default function LoginScreen() {
             value={email}
             onChangeText={setEmail}
           />
-          {/* <TextInput
-            placeholder="Enter your email"
-            placeholderTextColor="#64748b"
-            className="bg-slate-800 text-white p-4 rounded-2xl"
-          /> */}
         </View>
-
         {/* Password */}
         <View className="mb-6">
           <Text className="text-slate-400 mb-2">Password</Text>
-          {/* <TextInput
-            placeholder="Enter your password"
-            placeholderTextColor="#64748b"
-            secureTextEntry
-            className="bg-slate-800 text-white p-4 rounded-2xl"
-          /> */}
           <TextInput
             placeholder="Password"
             secureTextEntry
@@ -74,9 +61,12 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
           />
+          {error && (
+            <Text className="text-red-400 text-center p-2 bg-red-500/20">
+              {error || pageError}
+            </Text>
+          )}
         </View>
-        {error && <Text className="text-red-400">{error || pageError}</Text>}
-
         {/* Login Button */}
         <Pressable
           className="bg-indigo-600 p-4 rounded-2xl active:opacity-80"
@@ -86,7 +76,6 @@ export default function LoginScreen() {
             {loading ? "Loading..." : "Login"}
           </Text>
         </Pressable>
-
         {/* Register Link */}
         <View className="flex-row justify-center mt-6">
           <Text className="text-slate-400">Don&apos;t have an account?</Text>

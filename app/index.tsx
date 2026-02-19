@@ -1,42 +1,162 @@
-// import { useAppSelector } from "@/hooks/hooks";
-// // import { useSubscriptionGate } from "@/navigation/Gate";
-// import { Redirect } from "expo-router";
+// import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
+// import { hydrateAuth } from "@/hooks/processes/auth-reducer";
+// import AsyncStorage from "@react-native-async-storage/async-storage";
+// import { useRouter } from "expo-router";
+// import { useEffect, useState } from "react";
+// import { Dimensions, Pressable, ScrollView, Text, View } from "react-native";
 
-// export default function Index() {
+// const { width } = Dimensions.get("window");
+
+// export default function OnboardingScreen() {
+//   const router = useRouter();
+//   const [loading, setLoading] = useState(true);
+//   const dispatch = useAppDispatch();
 //   const auth = useAppSelector((state) => state.auth);
-//   // const { hasAccess } = useSubscriptionGate();
 
-//   // if (!auth.isAuthenticated) {
-//   //   return <Redirect href="/login" />;
-//   // }
+//   useEffect(() => {
+//     dispatch(hydrateAuth());
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
 
-//   return <Redirect href="/login" />;
-//   // if (!hasAccess) {
-//   //   return <Redirect href="/paywall" />;
-//   // }
+//   useEffect(() => {
+//     if (auth.isAuthenticated) {
+//       router.replace("/dashboard");
+//     }
+//     //eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [auth.isAuthenticated]);
 
-//   // return <Redirect href="/tool" />;
+//   const checkOnboarding = async () => {
+//     const seen = await AsyncStorage.getItem("appOnBoardingSeen");
+
+//     if (seen === "true") {
+//       router.replace("/login"); // or dashboard if already logged in
+//     } else {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     checkOnboarding();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
+
+//   const handleFinish = async () => {
+//     await AsyncStorage.setItem("appOnBoardingSeen", "true");
+//     router.replace("/login");
+//   };
+
+//   if (loading) return null;
+
+//   return (
+//     <View className="flex-1 bg-slate-950">
+//       <ScrollView
+//         horizontal
+//         pagingEnabled
+//         showsHorizontalScrollIndicator={false}
+//       >
+//         {/* Slide 1 */}
+//         <View style={{ width }} className="flex-1 justify-center px-8">
+//           <View className="items-center mb-10">
+//             <View className="w-32 h-32 bg-indigo-600 rounded-full mb-8 animate-bounce " />
+//             <Text className="text-3xl font-bold text-white text-center">
+//               Trade Smarter
+//             </Text>
+//             <Text className="text-slate-400 text-center mt-4">
+//               Real-time market data and smart insights at your fingertips.
+//             </Text>
+//           </View>
+//         </View>
+
+//         {/* Slide 2 */}
+//         <View style={{ width }} className="flex-1 justify-center px-8">
+//           <View className="items-center mb-10">
+//             <View className="w-32 h-32 bg-emerald-600 rounded-full mb-8 animate-pulse" />
+//             <Text className="text-3xl font-bold text-white text-center">
+//               Track Your Portfolio
+//             </Text>
+//             <Text className="text-slate-400 text-center mt-4">
+//               Monitor gains, losses and performance in one dashboard.
+//             </Text>
+//           </View>
+//         </View>
+
+//         {/* Slide 3 */}
+//         <View style={{ width }} className="flex-1 justify-center px-8">
+//           <View className="items-center mb-10">
+//             <View className="w-32 h-32 bg-purple-600 rounded-full mb-8 animate-bounce" />
+//             <Text className="text-3xl font-bold text-white text-center">
+//               Secure & Fast
+//             </Text>
+//             <Text className="text-slate-400 text-center mt-4">
+//               Lightning-fast trades with enterprise-grade security.
+//             </Text>
+
+//             <Pressable
+//               onPress={handleFinish}
+//               className="bg-indigo-600 px-8 py-4 rounded-2xl mt-10"
+//             >
+//               <Text className="text-white font-semibold text-lg">
+//                 Get Started
+//               </Text>
+//             </Pressable>
+//           </View>
+//         </View>
+//       </ScrollView>
+//     </View>
+//   );
 // }
 
-import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
-import { hydrateAuth } from "@/hooks/processes/auth-reducer";
+import { useAppSelector } from "@/hooks/hooks";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Dimensions, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 const { width } = Dimensions.get("window");
+
+const slides = [
+  {
+    title: "AI Market Intelligence",
+    subtitle:
+      "Get real-time institutional-grade insights and smart trading signals powered by advanced analytics.",
+    color: "bg-indigo-600",
+  },
+  {
+    title: "Confidence-Based Signals",
+    subtitle:
+      "Trade with clarity using bias, structure and probability models designed for modern traders.",
+    color: "bg-emerald-600",
+  },
+  {
+    title: "Professional Edge",
+    subtitle:
+      "Stay ahead with market regime, liquidity and structure tracking in one powerful platform.",
+    color: "bg-purple-600",
+  },
+];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const dispatch = useAppDispatch();
+  const [index, setIndex] = useState(0);
+
+  // const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    dispatch(hydrateAuth());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const scrollRef = useRef<ScrollView>(null);
+
+  // useEffect(() => {
+  //   dispatch(hydrateAuth());
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   useEffect(() => {
     if (auth.isAuthenticated) {
@@ -46,10 +166,10 @@ export default function OnboardingScreen() {
   }, [auth.isAuthenticated]);
 
   const checkOnboarding = async () => {
-    const seen = await AsyncStorage.getItem("onboardingSeen");
+    const seen = await AsyncStorage.getItem("isOnBoardingSeen");
 
     if (seen === "true") {
-      router.replace("/login"); // or dashboard if already logged in
+      router.replace("/login");
     } else {
       setLoading(false);
     }
@@ -61,67 +181,101 @@ export default function OnboardingScreen() {
   }, []);
 
   const handleFinish = async () => {
-    await AsyncStorage.setItem("onboardingSeen", "true");
+    await AsyncStorage.setItem("isOnBoardingSeen", "true");
     router.replace("/login");
+  };
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const slide = Math.round(e.nativeEvent.contentOffset.x / width);
+    setIndex(slide);
   };
 
   if (loading) return null;
 
   return (
     <View className="flex-1 bg-slate-950">
+      {/* Slides */}
       <ScrollView
+        ref={scrollRef}
         horizontal
         pagingEnabled
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsHorizontalScrollIndicator={false}
       >
-        {/* Slide 1 */}
-        <View style={{ width }} className="flex-1 justify-center px-8">
-          <View className="items-center mb-10">
-            <View className="w-32 h-32 bg-indigo-600 rounded-full mb-8 animate-bounce " />
-            <Text className="text-3xl font-bold text-white text-center">
-              Trade Smarter
-            </Text>
-            <Text className="text-slate-400 text-center mt-4">
-              Real-time market data and smart insights at your fingertips.
-            </Text>
-          </View>
-        </View>
+        {slides.map((item, i) => (
+          <View
+            key={i}
+            style={{ width }}
+            className="flex-1 justify-between px-8 pb-14 pt-20"
+          >
+            {/* Illustration */}
+            <View className="items-center">
+              <View
+                className={`w-64 h-64 rounded-full ${item.color} opacity-20 absolute`}
+              />
 
-        {/* Slide 2 */}
-        <View style={{ width }} className="flex-1 justify-center px-8">
-          <View className="items-center mb-10">
-            <View className="w-32 h-32 bg-emerald-600 rounded-full mb-8 animate-pulse" />
-            <Text className="text-3xl font-bold text-white text-center">
-              Track Your Portfolio
-            </Text>
-            <Text className="text-slate-400 text-center mt-4">
-              Monitor gains, losses and performance in one dashboard.
-            </Text>
-          </View>
-        </View>
+              {/* Modern illustration placeholder */}
+              <View
+                className={`w-40 h-40 rounded-3xl ${item.color} items-center justify-center`}
+              >
+                <Text className="text-white font-bold text-lg">{i + 1}</Text>
+              </View>
+            </View>
 
-        {/* Slide 3 */}
-        <View style={{ width }} className="flex-1 justify-center px-8">
-          <View className="items-center mb-10">
-            <View className="w-32 h-32 bg-purple-600 rounded-full mb-8 animate-bounce" />
-            <Text className="text-3xl font-bold text-white text-center">
-              Secure & Fast
-            </Text>
-            <Text className="text-slate-400 text-center mt-4">
-              Lightning-fast trades with enterprise-grade security.
-            </Text>
-
-            <Pressable
-              onPress={handleFinish}
-              className="bg-indigo-600 px-8 py-4 rounded-2xl mt-10"
-            >
-              <Text className="text-white font-semibold text-lg">
-                Get Started
+            {/* Text */}
+            <View>
+              <Text className="text-3xl font-bold text-white text-center">
+                {item.title}
               </Text>
-            </Pressable>
+
+              <Text className="text-slate-400 text-center mt-5 leading-6">
+                {item.subtitle}
+              </Text>
+            </View>
+
+            {/* CTA */}
+            <View>
+              {i === slides.length - 1 ? (
+                <Pressable
+                  onPress={handleFinish}
+                  className="bg-indigo-600 py-4 rounded-2xl items-center"
+                >
+                  <Text className="text-white font-semibold text-lg">
+                    Start Trading
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() =>
+                    scrollRef.current?.scrollTo({
+                      x: width * (i + 1),
+                      animated: true,
+                    })
+                  }
+                  className="bg-slate-800 py-4 rounded-2xl items-center"
+                >
+                  <Text className="text-white font-semibold text-lg">
+                    Continue
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           </View>
-        </View>
+        ))}
       </ScrollView>
+
+      {/* Progress Indicator */}
+      <View className="flex-row justify-center mb-10">
+        {slides.map((_, i) => (
+          <View
+            key={i}
+            className={`h-2 mx-1 rounded-full ${
+              i === index ? "w-8 bg-indigo-500" : "w-2 bg-slate-700"
+            }`}
+          />
+        ))}
+      </View>
     </View>
   );
 }
