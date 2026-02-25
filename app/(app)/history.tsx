@@ -279,32 +279,3 @@ export default function ProfileScreen() {
 //                   Core Signal • Explorer Tier
 //                 </Text>
 //               </View>
-//             </View>
-
-//             <View className="py-4 border-b border-neutral-800">
-//               <View className="flex-row justify-between items-center mb-1">
-//                 <Text className="text-white font-medium">
-//                   S&P500 Indicator Alignment
-//                 </Text>
-//                 <Text className="text-neutral-500 text-sm">10:12</Text>
-//               </View>
-
-//               <Text className="text-neutral-400 text-sm mb-3">
-//                 Multi-timeframe confirmation across momentum structures.
-//               </Text>
-
-//               <View className="px-3 py-1 bg-neutral-800 rounded-full self-start">
-//                 <Text className="text-neutral-400 text-xs">
-//                   Indicator Analysis • Strategist Tier
-//                 </Text>
-//               </View>
-//             </View>
-//           </View>
-
-//           {/* Footer Spacer */}
-//           <View className="h-20" />
-//         </ScrollView>
-//       </View>
-//     </ScreenWrapper>
-//   );
-// }
