@@ -1,25 +1,77 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
 import { registerRequest } from "@/hooks/processes/auth-reducer";
 import { Link, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function RegisterScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
   const { loading, error } = useAppSelector((state) => state.auth);
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formState, setFormState] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    loading: false,
+    error: "",
+  });
 
   const handleSignup = async () => {
-    const res: any = await dispatch(registerRequest({ name, email, password }));
-    if (res.meta.requestStatus === "fulfilled") {
-      router.replace("/dashboard");
+    if (
+      !formState.firstName ||
+      !formState.lastName ||
+      !formState.email ||
+      !formState.password ||
+      !formState.confirmPassword
+    ) {
+      return Toast.show({
+        type: "error",
+        text1: "Please fill in all fields",
+      });
+    }
+    if (formState.password !== formState.confirmPassword) {
+      return Toast.show({
+        type: "error",
+        text1: "Passwords do not match",
+      });
+    }
+    formState.loading = true;
+    try {
+      const res: any = await dispatch(
+        registerRequest({
+          email: formState.email,
+          password: formState.password,
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+        }),
+      );
+      console.log(res);
+      if (res.meta.requestStatus === "fulfilled") {
+        router.replace("/dashboard");
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: error?.message || "Error during registration",
+      });
+    } finally {
+      formState.loading = false;
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      Toast.show({
+        type: "error",
+        text1: error,
+      });
+    }
+  }, [error]);
+
   return (
     <View className="flex-1 bg-slate-950 justify-center px-6">
       {/* Title */}
@@ -31,52 +83,70 @@ export default function RegisterScreen() {
       <View className="bg-slate-900 p-6 rounded-3xl shadow-lg shadow-black/40">
         {/* Name */}
         <View className="mb-4">
-          <Text className="text-slate-400 mb-2">Full Name</Text>
           <TextInput
-            placeholder="Full Name"
+            placeholder="First Name"
             placeholderTextColor="#64748b"
             className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
-            value={name}
-            onChangeText={setName}
+            value={formState.firstName}
+            onChangeText={(text) =>
+              setFormState({ ...formState, firstName: text })
+            }
+          />
+        </View>
+        <View className="mb-4">
+          <TextInput
+            placeholder="Last Name"
+            placeholderTextColor="#64748b"
+            className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
+            value={formState.lastName}
+            onChangeText={(text) =>
+              setFormState({ ...formState, lastName: text })
+            }
           />
         </View>
         {/* Email */}
         <View className="mb-4">
-          <Text className="text-slate-400 mb-2">Email</Text>
-
           <TextInput
             placeholder="Email"
             placeholderTextColor="#64748b"
             className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
-            value={email}
-            onChangeText={setEmail}
+            value={formState.email}
+            onChangeText={(text) => setFormState({ ...formState, email: text })}
           />
         </View>
         {/* Password */}
         <View className="mb-6">
-          <Text className="text-slate-400 mb-2">Password</Text>
           <TextInput
             placeholder="Password"
             placeholderTextColor="#64748b"
             secureTextEntry
             className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
-            value={password}
-            onChangeText={setPassword}
+            value={formState.password}
+            onChangeText={(text) =>
+              setFormState({ ...formState, password: text })
+            }
           />
-          {error && (
-            <Text className="text-red-400 text-center p-2 bg-red-500/20">
-              {error}
-            </Text>
-          )}
         </View>
-
+        <View className="mb-6">
+          <TextInput
+            placeholder="Confirm Password"
+            placeholderTextColor="#64748b"
+            secureTextEntry
+            className="bg-slate-800 text-white p-4 rounded-2xl mb-4"
+            value={formState.confirmPassword}
+            onChangeText={(text) =>
+              setFormState({ ...formState, confirmPassword: text })
+            }
+          />
+        </View>
         {/* Register Button */}
         <Pressable
+          disabled={formState.loading}
           className="bg-indigo-600 p-4 rounded-2xl active:opacity-80"
           onPress={handleSignup}
         >
           <Text className="text-white text-center font-semibold text-lg">
-            {loading ? "Creating..." : "Create Account"}
+            {formState.loading ? "Creating..." : "Create Account"}
           </Text>
         </Pressable>
         {/* Login Link */}

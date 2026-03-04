@@ -1,6 +1,6 @@
 // reducers.js
+import axios from "@/config/axios";
 import { users } from "@/constants/constants";
-import { register } from "@/services/auth.service";
 import {
   clearToken,
   getToken,
@@ -79,14 +79,21 @@ export const registerRequest = createAsyncThunk(
     {
       email,
       password,
-      name,
-    }: { email: string; password: string; name: string },
+      firstName,
+      lastName,
+    }: { email: string; password: string; firstName: string; lastName: string },
     { rejectWithValue },
   ) => {
     try {
-      const res = await register(email, password, name);
-      return res;
+      const { data } = await axios.post("auth/register", {
+        email,
+        password,
+        firstName,
+        lastName,
+      });
+      return data as any;
     } catch (error: any) {
+      console.log(error);
       return rejectWithValue(error?.message || "Registration failed");
     }
   },
@@ -118,9 +125,9 @@ const mySlice = createSlice({
     builder.addCase(registerRequest.fulfilled, (state, action) => {
       state.loading = false;
       state.user = action.payload.user;
-      state.token = action.payload.token;
+      state.token = action.payload.accessToken;
       state.isAuthenticated = true;
-      saveToken(action.payload.token, 3600); // Save token with 1 hour expiration
+      saveToken(action.payload.accessToken, 3600); // Save token with 1 hour expiration
     });
     builder.addCase(registerRequest.rejected, (state, action: any) => {
       state.loading = false;
