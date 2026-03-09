@@ -117,12 +117,12 @@ export default function TabLayout() {
 
       {/* History */}
       <Tabs.Screen
-        name="history"
+        name="profile"
         options={{
-          title: "History",
+          title: "Profile",
           tabBarIcon: ({ color, focused }) => (
             <View
-              className={`p-2 rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
+              className={`p-2 pt-4 rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
             >
               <Ionicons
                 name={focused ? "time" : "time-outline"}
@@ -131,14 +131,6 @@ export default function TabLayout() {
               />
             </View>
           ),
-        }}
-      />
-
-      {/* Hidden */}
-      <Tabs.Screen
-        name="Dashboard"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

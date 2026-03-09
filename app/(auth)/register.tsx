@@ -1,7 +1,7 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
+import { useAppDispatch } from "@/hooks/hooks";
 import { registerRequest } from "@/hooks/processes/auth-reducer";
 import { Link, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -9,7 +9,6 @@ export default function RegisterScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { loading, error } = useAppSelector((state) => state.auth);
   const [formState, setFormState] = useState({
     firstName: "",
     lastName: "",
@@ -67,15 +66,6 @@ export default function RegisterScreen() {
       setFormState({ ...formState, loading: false });
     }
   };
-
-  useEffect(() => {
-    if (error) {
-      Toast.show({
-        type: "error",
-        text1: error,
-      });
-    }
-  }, [error]);
 
   return (
     <View className="flex-1 bg-slate-950 justify-center px-6">

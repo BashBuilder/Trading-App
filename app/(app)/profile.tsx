@@ -1,7 +1,16 @@
 import ScreenWrapper from "@/components/ScreenWrapper";
+import { clearToken } from "@/services/token.service";
+import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function ProfileScreen() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await clearToken();
+    router.replace("/login");
+  };
+
   return (
     <ScreenWrapper title="Profile">
       <View className="flex-1 pt-14">
@@ -138,7 +147,10 @@ export default function ProfileScreen() {
           ))}
 
           {/* Logout */}
-          <Pressable className="bg-red-500 mt-10 py-4 rounded-2xl items-center">
+          <Pressable
+            className="bg-red-500 mt-10 py-4 rounded-2xl items-center"
+            onPress={handleLogout}
+          >
             <Text className="text-white font-semibold">Logout</Text>
           </Pressable>
 

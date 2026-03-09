@@ -10,10 +10,20 @@ export const saveToken = async (token: string, expiresIn: number) => {
   await SecureStore.setItemAsync(EXPIRATION_KEY, expirationTime.toString());
 };
 
-export const getToken = async () => {
+// services/token.service.ts
+export const getToken = async (): Promise<string | null> => {
+  const expiration = await SecureStore.getItemAsync(EXPIRATION_KEY);
+  if (expiration && Date.now() > parseInt(expiration)) {
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(EXPIRATION_KEY);
+    return null; // token expired
+  }
   return await SecureStore.getItemAsync(TOKEN_KEY);
 };
 
+// export const getToken = async () => {
+//   return await SecureStore.getItemAsync(TOKEN_KEY);
+// };
 export const getExpiration = async () => {
   const exp = await SecureStore.getItemAsync(EXPIRATION_KEY);
   return exp ? parseInt(exp) : null;

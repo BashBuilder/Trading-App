@@ -100,34 +100,17 @@ const mySlice = createSlice({
       state.isAuthenticated = false;
       clearToken();
     },
+    updateUser: (state, action) => {
+      state.user = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(loginRequest.fulfilled, (state, action) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
-      // state.isAuthenticated = true;
-      // state.loading = false;
-      // saveToken(action.payload.token, 3600); // Save token with 1 hour expiration
-    });
-    builder.addCase(loginRequest.rejected, (state, action) => {
-      state.error = action.payload as string;
-      state.loading = false;
-    });
-    builder.addCase(registerRequest.fulfilled, (state, action) => {
-      state.loading = false;
-    });
-    builder.addCase(registerRequest.rejected, (state, action: any) => {
-      state.loading = false;
-      state.error = action.payload;
-    });
-    builder.addCase(hydrateAuth.fulfilled, (state, action) => {
-      if (action.payload) {
-        state.token = action.payload;
-        state.isAuthenticated = true;
-      }
     });
   },
 });
 
-export const { logout } = mySlice.actions;
+export const { logout, updateUser } = mySlice.actions;
 export const authReducer = mySlice.reducer;
