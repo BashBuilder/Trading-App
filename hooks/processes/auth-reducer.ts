@@ -1,12 +1,6 @@
 // reducers.js
 import axios from "@/config/axios";
-import { users } from "@/constants/constants";
-import {
-  clearToken,
-  getToken,
-  isTokenExpired,
-  saveToken,
-} from "@/services/token.service";
+import { clearToken, getToken, isTokenExpired } from "@/services/token.service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 type AuthState = {
@@ -50,25 +44,18 @@ export const loginRequest = createAsyncThunk(
       if (!email || !password) {
         throw new Error("Kindly fill all fields");
       }
-      await new Promise((res) => setTimeout(res, 1000)); // simulate delay
-      const user = users.find(
-        (u) => u.email === email && u.password === password,
+      const { data } = await axios.post("auth/login", {
+        email,
+        password,
+      });
+      return data as any;
+    } catch (error: any) {
+      return rejectWithValue(
+        error?.response?.data?.errors?.[0] ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Error signing in, try again",
       );
-
-      if (!user) {
-        throw new Error("Invalid credentials");
-      }
-
-      return {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        },
-        token: `fake-jwt-token-${user.id}`,
-      };
-    } catch (err: any) {
-      return rejectWithValue(err.message || "Error signing in, try again");
     }
   },
 );
@@ -93,8 +80,12 @@ export const registerRequest = createAsyncThunk(
       });
       return data as any;
     } catch (error: any) {
-      console.log(error);
-      return rejectWithValue(error?.message || "Registration failed");
+      return rejectWithValue(
+        error?.response?.data?.errors?.[0] ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Error during registration",
+      );
     }
   },
 );
@@ -114,9 +105,9 @@ const mySlice = createSlice({
     builder.addCase(loginRequest.fulfilled, (state, action) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
-      state.isAuthenticated = true;
-      state.loading = false;
-      saveToken(action.payload.token, 3600); // Save token with 1 hour expiration
+      // state.isAuthenticated = true;
+      // state.loading = false;
+      // saveToken(action.payload.token, 3600); // Save token with 1 hour expiration
     });
     builder.addCase(loginRequest.rejected, (state, action) => {
       state.error = action.payload as string;
@@ -124,10 +115,6 @@ const mySlice = createSlice({
     });
     builder.addCase(registerRequest.fulfilled, (state, action) => {
       state.loading = false;
-      state.user = action.payload.user;
-      state.token = action.payload.accessToken;
-      state.isAuthenticated = true;
-      saveToken(action.payload.accessToken, 3600); // Save token with 1 hour expiration
     });
     builder.addCase(registerRequest.rejected, (state, action: any) => {
       state.loading = false;

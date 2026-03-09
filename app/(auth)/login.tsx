@@ -1,31 +1,46 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
+import { useAppDispatch } from "@/hooks/hooks";
 import { loginRequest } from "@/hooks/processes/auth-reducer";
+import { saveToken } from "@/services/token.service";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
-  const [pageError, setPageError] = useState("");
   const [password, setPassword] = useState("");
-
+  const [loading, setLoading] = useState(false);
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { loading, error } = useAppSelector((state) => state.auth);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
-      const res: any = await dispatch(loginRequest({ email, password }));
-      if (res.meta.requestStatus === "rejected") {
-        setPageError(res.payload);
-        return;
+      const data: any = await dispatch(loginRequest({ email, password }));
+      if (data.meta.requestStatus === "rejected") {
+        throw new Error(data.payload as string);
       }
-      if (res.meta.requestStatus === "fulfilled") {
+      Toast.show({
+        type: "success",
+        text1: "Login successful! Redirecting...",
+      });
+
+      if (data.meta.requestStatus === "fulfilled") {
+        Toast.show({
+          type: "success",
+          text1: "Login successful",
+        });
+        saveToken(data.payload.accessToken, 3600);
         router.replace("/dashboard");
       }
     } catch (error: any) {
-      setPageError("An unexpected error occurred. Please try again.");
+      Toast.show({
+        type: "error",
+        text1: error?.message || "Login failed. Please try again.",
+      });
       console.log("Login error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,14 +76,10 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
           />
-          {error && (
-            <Text className="text-red-400 text-center p-2 bg-red-500/20">
-              {error || pageError}
-            </Text>
-          )}
         </View>
         {/* Login Button */}
         <Pressable
+          disabled={loading}
           className="bg-indigo-600 p-4 rounded-2xl active:opacity-80"
           onPress={handleLogin}
         >

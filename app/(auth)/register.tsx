@@ -1,5 +1,5 @@
-import axios from "@/config/axios";
 import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
+import { registerRequest } from "@/hooks/processes/auth-reducer";
 import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -41,31 +41,27 @@ export default function RegisterScreen() {
     }
     setFormState({ ...formState, loading: true, error: "" });
     try {
-      const { data } = await axios.post("auth/register", {
-        email: formState.email,
-        password: formState.password,
-        firstName: formState.firstName,
-        lastName: formState.lastName,
-      });
+      const data = await dispatch(
+        registerRequest({
+          email: formState.email,
+          password: formState.password,
+          firstName: formState.firstName,
+          lastName: formState.lastName,
+        }),
+      );
+
+      if (data.meta.requestStatus === "rejected") {
+        throw new Error(data.payload as string);
+      }
       Toast.show({
         type: "success",
         text1: "Account created successfully! Please login.",
       });
       router.replace("/login");
     } catch (error: any) {
-      console.log(
-        error?.response?.data?.errors?.[0] ||
-          error?.response?.data?.message ||
-          error?.message ||
-          "Error during registration",
-      );
       Toast.show({
         type: "error",
-        text1:
-          error?.response?.data?.errors?.[0] ||
-          error?.response?.data?.message ||
-          error?.message ||
-          "Error during registration",
+        text1: error?.message || "Error during registration",
       });
     } finally {
       setFormState({ ...formState, loading: false });
