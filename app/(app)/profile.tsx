@@ -1,10 +1,12 @@
 import ScreenWrapper from "@/components/ScreenWrapper";
+import { useAppSelector } from "@/hooks/hooks";
 import { clearToken } from "@/services/token.service";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const user = useAppSelector((state) => state.auth.user);
 
   const handleLogout = async () => {
     await clearToken();
@@ -18,11 +20,13 @@ export default function ProfileScreen() {
           {/* Profile Header */}
           <View className="items-center mb-8">
             <View className=" p-6  rounded-full bg-indigo-600 items-center justify-center mb-4">
-              <Text className="text-white text-xl font-semibold">John</Text>
+              <Text className="text-white text-xl font-semibold">
+                {user?.firstName}
+              </Text>
             </View>
 
             <Text className="text-xl font-semibold text-white">
-              Anthony John
+              {user?.firstName} {user?.lastName}
             </Text>
 
             <Text className="text-neutral-400 mt-1">Strategist Tier</Text>
@@ -39,7 +43,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Performance Snapshot */}
-          <View className="bg-neutral-900 p-6 rounded-2xl mb-8 border border-neutral-800">
+          {/* <View className="bg-neutral-900 p-6 rounded-2xl mb-8 border border-neutral-800">
             <Text className="text-neutral-400 mb-4">Performance Snapshot</Text>
 
             <View className="flex-row justify-between">
@@ -60,7 +64,7 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
-          </View>
+          </View> */}
 
           {/* Quick Actions */}
           <View className="mb-8">
@@ -153,8 +157,6 @@ export default function ProfileScreen() {
           >
             <Text className="text-white font-semibold">Logout</Text>
           </Pressable>
-
-          <View className="h-24" />
         </ScrollView>
       </View>
     </ScreenWrapper>

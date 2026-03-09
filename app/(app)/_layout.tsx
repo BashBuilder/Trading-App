@@ -1,8 +1,35 @@
+import axios from "@/config/axios";
+import { useAppDispatch } from "@/hooks/hooks";
+import { updateUser } from "@/hooks/processes/auth-reducer";
+import { clearToken, getToken } from "@/services/token.service";
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
+import { useEffect } from "react";
 import { View } from "react-native";
 
 export default function TabLayout() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const checkAuth = async () => {
+    try {
+      const token = await getToken();
+      if (!token) {
+        router.replace("/login");
+      }
+      const user = await axios.get("auth/user", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      dispatch(updateUser(user.data));
+    } catch (error) {
+      clearToken();
+      router.replace("/login");
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
   return (
     <Tabs
       screenOptions={{
@@ -122,7 +149,7 @@ export default function TabLayout() {
           title: "Profile",
           tabBarIcon: ({ color, focused }) => (
             <View
-              className={`p-2 pt-4 rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
+              className={`p-2  rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
             >
               <Ionicons
                 name={focused ? "time" : "time-outline"}
