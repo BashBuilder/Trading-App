@@ -121,7 +121,7 @@ export default function ProfileScreen() {
 
   const isActiveSub = subscription && subscription.status === "active";
 
-  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ");
+  const fullName = `${user.firstName} ${user.lastName} `;
 
   return (
     <ScreenWrapper title="Profile">
@@ -133,11 +133,6 @@ export default function ProfileScreen() {
         {/* ── Avatar + name ── */}
         <View className="items-center mb-8 pt-2">
           <Avatar firstName={user?.firstName} lastName={user?.lastName} />
-
-          <Text className="text-white text-xl font-semibold mt-4">
-            {fullName || "—"}
-          </Text>
-
           <Text className="text-neutral-500 text-sm mt-1">
             {user?.email || "—"}
           </Text>
