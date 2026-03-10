@@ -1,164 +1,286 @@
+// app/(app)/profile.tsx
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { useAppSelector } from "@/hooks/hooks";
+import {
+  Subscription,
+  subscriptionService,
+} from "@/services/subscription.service";
 import { clearToken } from "@/services/token.service";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+
+const TIER_COLORS: Record<
+  string,
+  { accent: string; bg: string; text: string }
+> = {
+  explorer: {
+    accent: "border-cyan-500",
+    bg: "bg-cyan-500/10",
+    text: "text-cyan-400",
+  },
+  strategist: {
+    accent: "border-indigo-500",
+    bg: "bg-indigo-500/10",
+    text: "text-indigo-400",
+  },
+  mathematician: {
+    accent: "border-violet-500",
+    bg: "bg-violet-500/10",
+    text: "text-violet-400",
+  },
+};
+
+const CAPABILITY_LABELS: Record<string, string> = {
+  coreSignals: "Core Signals",
+  advancedIndicators: "Advanced Indicators",
+  analytics: "Analytics",
+};
+
+function Avatar({
+  firstName,
+  lastName,
+}: {
+  firstName?: string;
+  lastName?: string;
+}) {
+  const initials =
+    [firstName?.[0], lastName?.[0]].filter(Boolean).join("").toUpperCase() ||
+    "?";
+  return (
+    <View className="w-20 h-20 rounded-full bg-indigo-600 items-center justify-center border-2 border-indigo-400/40">
+      <Text className="text-white text-2xl font-bold">{initials}</Text>
+    </View>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="flex-row justify-between items-center py-3.5 border-b border-neutral-800/60">
+      <Text className="text-neutral-500 text-sm">{label}</Text>
+      <Text className="text-neutral-200 text-sm font-medium">{value}</Text>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const router = useRouter();
   const user = useAppSelector((state) => state.auth.user);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subLoading, setSubLoading] = useState(true);
 
-  const handleLogout = async () => {
-    await clearToken();
-    router.replace("/login");
+  useEffect(() => {
+    loadSubscription();
+  }, []);
+
+  const loadSubscription = async () => {
+    try {
+      setSubLoading(true);
+      const sub = await subscriptionService.getCurrent();
+      setSubscription(sub);
+    } catch {
+      // silently fail — not critical for profile render
+    } finally {
+      setSubLoading(false);
+    }
   };
+
+  const handleLogout = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          await clearToken();
+          router.replace("/(auth)/login");
+        },
+      },
+    ]);
+  };
+
+  const formatExpiry = (expiresAt: string | null) => {
+    if (!expiresAt) return "Lifetime";
+    return new Date(expiresAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const tierColors = subscription?.tierId
+    ? TIER_COLORS[subscription.tierId]
+    : null;
+
+  const isActiveSub = subscription && subscription.status === "active";
+
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ");
 
   return (
     <ScreenWrapper title="Profile">
-      <View className="flex-1 pt-14">
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Profile Header */}
-          <View className="items-center mb-8">
-            <View className=" p-6  rounded-full bg-indigo-600 items-center justify-center mb-4">
-              <Text className="text-white text-xl font-semibold">
-                {user?.firstName}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        className="mt-2"
+      >
+        {/* ── Avatar + name ── */}
+        <View className="items-center mb-8 pt-2">
+          <Avatar firstName={user?.firstName} lastName={user?.lastName} />
+
+          <Text className="text-white text-xl font-semibold mt-4">
+            {fullName || "—"}
+          </Text>
+
+          <Text className="text-neutral-500 text-sm mt-1">
+            {user?.email || "—"}
+          </Text>
+
+          {/* Tier badge */}
+          {isActiveSub && tierColors && (
+            <View
+              className={`mt-3 px-3 py-1 rounded-full border ${tierColors.accent} ${tierColors.bg}`}
+            >
+              <Text className={`text-xs font-semibold ${tierColors.text}`}>
+                {subscription.tierName}
               </Text>
             </View>
+          )}
+        </View>
 
-            <Text className="text-xl font-semibold text-white">
-              {user?.firstName} {user?.lastName}
-            </Text>
-
-            <Text className="text-neutral-400 mt-1">Strategist Tier</Text>
-
-            <View className="flex-row mt-4">
-              <View className="px-3 py-1 bg-indigo-500/20 rounded-full mr-2">
-                <Text className="text-indigo-400 text-xs">Verified</Text>
-              </View>
-
-              <View className="px-3 py-1 bg-neutral-800 rounded-full">
-                <Text className="text-neutral-400 text-xs">Pro Member</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Performance Snapshot */}
-          {/* <View className="bg-neutral-900 p-6 rounded-2xl mb-8 border border-neutral-800">
-            <Text className="text-neutral-400 mb-4">Performance Snapshot</Text>
-
-            <View className="flex-row justify-between">
-              <View>
-                <Text className="text-white text-lg font-medium">68%</Text>
-                <Text className="text-neutral-500 text-sm">Accuracy</Text>
-              </View>
-
-              <View>
-                <Text className="text-white text-lg font-medium">124</Text>
-                <Text className="text-neutral-500 text-sm">Signals Used</Text>
-              </View>
-
-              <View>
-                <Text className="text-white text-lg font-medium">+32%</Text>
-                <Text className="text-neutral-500 text-sm">
-                  Portfolio Growth
-                </Text>
-              </View>
-            </View>
-          </View> */}
-
-          {/* Quick Actions */}
-          <View className="mb-8">
-            <Text className="text-neutral-400 mb-4">Account & Settings</Text>
-
-            {[
-              "Subscription",
-              "Security",
-              "Notifications",
-              "Risk Preferences",
-            ].map((item, i) => (
-              <Pressable
-                key={i}
-                className="bg-neutral-900 p-5 rounded-xl mb-3 border border-neutral-800"
-              >
-                <Text className="text-white">{item}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Activity Log */}
-          <Text className="text-xl font-semibold text-white mb-2">
-            Activity
+        {/* ── Account details ── */}
+        <View className="mb-6">
+          <Text className="text-neutral-600 text-xs uppercase tracking-widest mb-2">
+            Account
           </Text>
-          <Text className="text-neutral-500 mb-6">
-            Structured record of your scans and signal interactions.
+          <View className="bg-neutral-900 rounded-2xl px-4 border border-neutral-800">
+            <InfoRow label="First Name" value={user?.firstName || "—"} />
+            <InfoRow label="Last Name" value={user?.lastName || "—"} />
+            <InfoRow label="Email" value={user?.email || "—"} />
+          </View>
+        </View>
+
+        {/* ── Subscription card ── */}
+        <View className="mb-6">
+          <Text className="text-neutral-600 text-xs uppercase tracking-widest mb-2">
+            Subscription
           </Text>
 
-          {/* Filter */}
-          <View className="flex-row mb-6">
-            {["All", "Signals", "Analytics"].map((item, index) => (
-              <Pressable
-                key={index}
-                className={`px-4 py-2 rounded-full mr-3 border ${
-                  index === 0
-                    ? "border-indigo-500 bg-neutral-900"
-                    : "border-neutral-800 bg-neutral-900"
-                }`}
-              >
-                <Text
-                  className={`text-sm ${
-                    index === 0 ? "text-white" : "text-neutral-400"
-                  }`}
+          {subLoading ? (
+            <View className="bg-neutral-900 rounded-2xl p-5 border border-neutral-800 items-center">
+              <ActivityIndicator color="#6366f1" size="small" />
+            </View>
+          ) : isActiveSub && tierColors ? (
+            // Active subscription card
+            <View
+              className={`bg-neutral-900 rounded-2xl border ${tierColors.accent} overflow-hidden`}
+            >
+              {/* Top accent strip */}
+              <View className={`h-0.5 w-full ${tierColors.bg}`} />
+
+              <View className="p-5">
+                <View className="flex-row justify-between items-start mb-4">
+                  <View>
+                    <Text className="text-white font-semibold text-base">
+                      {subscription.tierName}
+                    </Text>
+                    <Text className="text-neutral-500 text-xs mt-0.5 capitalize">
+                      {subscription.billingCycle === "oneTime"
+                        ? "Lifetime access"
+                        : `${subscription.billingCycle} plan`}
+                    </Text>
+                  </View>
+
+                  <View
+                    className={`px-2.5 py-1 rounded-full ${
+                      subscription.status === "cancelled"
+                        ? "bg-red-500/10"
+                        : "bg-emerald-500/10"
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-semibold capitalize ${
+                        subscription.status === "cancelled"
+                          ? "text-red-400"
+                          : "text-emerald-400"
+                      }`}
+                    >
+                      {subscription.status}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Capabilities */}
+                <View className="flex-row flex-wrap gap-2 mb-4">
+                  {subscription.capabilities.map((cap) => (
+                    <View
+                      key={cap}
+                      className="px-2.5 py-1 bg-neutral-800 rounded-lg"
+                    >
+                      <Text className="text-neutral-400 text-xs">
+                        {CAPABILITY_LABELS[cap] || cap}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Expiry */}
+                {subscription.expiresAt && (
+                  <Text className="text-neutral-600 text-xs mb-4">
+                    {subscription.status === "cancelled"
+                      ? "Access until"
+                      : "Renews"}{" "}
+                    {formatExpiry(subscription.expiresAt)}
+                  </Text>
+                )}
+
+                {/* Manage button */}
+                <Pressable
+                  onPress={() => router.push("/(app)/paywall")}
+                  className={`py-3 rounded-xl items-center ${tierColors.bg} border ${tierColors.accent}`}
                 >
-                  {item}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Activity Items */}
-          {[
-            {
-              title: "EURUSD Structural Scan",
-              time: "14:32",
-              desc: "Core signal with indicator alignment across H1 timeframe.",
-              tag: "Strategist Tier",
-            },
-            {
-              title: "NASDAQ Volatility Analysis",
-              time: "11:08",
-              desc: "Compression phase detected within narrowing structural range.",
-              tag: "Mathematician Tier",
-            },
-            {
-              title: "GBPUSD Core Signal",
-              time: "Yesterday",
-              desc: "Upward structural pressure observed within intraday channel.",
-              tag: "Explorer Tier",
-            },
-          ].map((item, i) => (
-            <View key={i} className="py-4 border-b border-neutral-800">
-              <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-white font-medium">{item.title}</Text>
-                <Text className="text-neutral-500 text-sm">{item.time}</Text>
-              </View>
-
-              <Text className="text-neutral-400 text-sm mb-3">{item.desc}</Text>
-
-              <View className="px-3 py-1 bg-neutral-800 rounded-full self-start">
-                <Text className="text-neutral-400 text-xs">{item.tag}</Text>
+                  <Text className={`text-sm font-semibold ${tierColors.text}`}>
+                    Manage Subscription
+                  </Text>
+                </Pressable>
               </View>
             </View>
-          ))}
+          ) : (
+            // No subscription card
+            <View className="bg-neutral-900 rounded-2xl border border-neutral-800 p-5">
+              <Text className="text-white font-semibold mb-1">
+                No Active Plan
+              </Text>
+              <Text className="text-neutral-500 text-sm mb-4 leading-5">
+                Unlock structured market analysis with an EliteScope
+                subscription.
+              </Text>
+              <Pressable
+                onPress={() => router.push("/(app)/paywall")}
+                className="bg-indigo-600 py-3 rounded-xl items-center"
+              >
+                <Text className="text-white text-sm font-semibold">
+                  View Plans
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
 
-          {/* Logout */}
-          <Pressable
-            className="bg-red-500 mt-10 py-4 rounded-2xl items-center"
-            onPress={handleLogout}
-          >
-            <Text className="text-white font-semibold">Logout</Text>
-          </Pressable>
-        </ScrollView>
-      </View>
+        {/* ── Logout ── */}
+        <Pressable
+          onPress={handleLogout}
+          className="border border-red-500/40 bg-red-500/5 py-4 rounded-2xl items-center mt-2"
+        >
+          <Text className="text-red-400 font-semibold">Sign Out</Text>
+        </Pressable>
+      </ScrollView>
     </ScreenWrapper>
   );
 }

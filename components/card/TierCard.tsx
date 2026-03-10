@@ -1,95 +1,155 @@
-// import { TierDefinition } from "@/config/tier";
-// import { Pressable, Text, View } from "react-native";
-
-// interface TierCardProps {
-//   tier: TierDefinition;
-//   onSelect: () => void;
-// }
-
-// export function TierCard({ tier, onSelect }: TierCardProps) {
-//   return (
-//     <View className="flex-1">
-//       <View className="bg-indigo-600 p-6 rounded-3xl mb-6">
-//         <Text className="text-white text-xl font-bold"> {tier.name} </Text>
-
-//         <Text className="text-white mt-2">{tier.price.monthly} / month</Text>
-//       </View>
-
-//       <View className="bg-slate-900 p-6 rounded-3xl mb-6">
-//         <Text className="text-white mb-2">✔ {tier.description}</Text>
-
-//       </View>
-
-//       <Pressable className="bg-emerald-600 p-4 rounded-2xl items-center">
-//         <Text className="text-white font-semibold">Upgrade Now</Text>
-//       </Pressable>
-//     </View>
-
-//   );
-// }
-
-import { TierDefinition } from "@/config/tier";
+// components/card/TierCard.tsx
+import { BillingCycle, Tier } from "@/services/subscription.service";
 import { Pressable, Text, View } from "react-native";
 
 interface TierCardProps {
-  tier: TierDefinition;
+  tier: Tier;
+  billingCycle: BillingCycle;
   onSelect: () => void;
   isActive?: boolean;
+  isCancelled?: boolean;
+  isLoading?: boolean;
 }
 
-export function TierCard({ tier, onSelect, isActive }: TierCardProps) {
+const CAPABILITY_LABELS: Record<string, string> = {
+  coreSignals: "Core Market Signals",
+  advancedIndicators: "Advanced Indicators",
+  analytics: "Structured Analytics",
+};
+
+const TIER_ACCENTS: Record<string, string> = {
+  explorer: "border-cyan-500/40",
+  strategist: "border-indigo-500/60",
+  mathematician: "border-violet-500/60",
+};
+
+const TIER_BADGE_COLORS: Record<string, string> = {
+  explorer: "bg-cyan-500/10 text-cyan-400",
+  strategist: "bg-indigo-500/10 text-indigo-400",
+  mathematician: "bg-violet-500/10 text-violet-400",
+};
+
+const TIER_BUTTON_COLORS: Record<string, string> = {
+  explorer: "bg-cyan-600",
+  strategist: "bg-indigo-600",
+  mathematician: "bg-violet-600",
+};
+
+const SAVINGS: Record<BillingCycle, string | null> = {
+  monthly: null,
+  annual: "Save 33%",
+  oneTime: "Best Value",
+};
+
+export function TierCard({
+  tier,
+  billingCycle,
+  onSelect,
+  isActive,
+  isCancelled,
+  isLoading,
+}: TierCardProps) {
+  const price = tier.price[billingCycle];
+  const saving = SAVINGS[billingCycle];
+
+  const cycleLabel =
+    billingCycle === "monthly"
+      ? "/ mo"
+      : billingCycle === "annual"
+        ? "/ yr"
+        : "lifetime";
+
+  const ctaLabel = isActive
+    ? isCancelled
+      ? "Reactivate"
+      : "Current Plan"
+    : "Select Plan";
+
   return (
     <Pressable
-      onPress={onSelect}
-      className={`p-6 rounded-2xl border mb-5 ${
+      onPress={isActive && !isCancelled ? undefined : onSelect}
+      className={`p-5 rounded-2xl border mb-4 ${
         isActive
-          ? "bg-neutral-900 border-indigo-500"
+          ? `bg-neutral-900 ${TIER_ACCENTS[tier.id]}`
           : "bg-neutral-900 border-neutral-800"
       }`}
     >
-      {/* Header */}
-      <View className="flex-row justify-between items-start mb-4">
-        <View>
-          <Text className="text-white text-lg font-semibold">{tier.name}</Text>
-
-          <Text className="text-neutral-400 text-sm mt-1 max-w-xs">
+      {/* Header row */}
+      <View className="flex-row justify-between items-start mb-3">
+        <View className="flex-1 mr-4">
+          <Text className="text-white text-base font-semibold tracking-wide">
+            {tier.name}
+          </Text>
+          <Text className="text-neutral-500 text-xs mt-1 leading-4">
             {tier.description}
           </Text>
         </View>
 
-        {isActive && (
-          <View className="px-3 py-1 bg-neutral-800 rounded-full">
-            <Text className="text-indigo-400 text-xs">Active</Text>
-          </View>
-        )}
+        <View className="items-end gap-1">
+          {isActive && (
+            <View
+              className={`px-2 py-0.5 rounded-full ${TIER_BADGE_COLORS[tier.id].split(" ")[0]}`}
+            >
+              <Text
+                className={`text-xs font-medium ${TIER_BADGE_COLORS[tier.id].split(" ")[1]}`}
+              >
+                {isCancelled ? "Cancelling" : "Active"}
+              </Text>
+            </View>
+          )}
+          {saving && !isActive && (
+            <View className="px-2 py-0.5 bg-emerald-500/10 rounded-full">
+              <Text className="text-emerald-400 text-xs font-medium">
+                {saving}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
 
-      {/* Features (if available) */}
-      {/* {tier.features && (
-        <View className="mb-5">
-          {tier.features.map((feature: string, index: number) => (
-            <Text key={index} className="text-neutral-400 text-sm mb-2">
-              • {feature}
-            </Text>
-          ))}
-        </View> */}
-      {/* )} */}
+      {/* Capabilities */}
+      <View className="mb-4 gap-1.5">
+        {["coreSignals", "advancedIndicators", "analytics"].map((cap) => {
+          const included = tier.capabilities.includes(cap);
+          return (
+            <View key={cap} className="flex-row items-center gap-2">
+              <Text
+                className={`text-xs ${included ? "text-emerald-400" : "text-neutral-700"}`}
+              >
+                {included ? "✓" : "✗"}
+              </Text>
+              <Text
+                className={`text-xs ${included ? "text-neutral-300" : "text-neutral-700"}`}
+              >
+                {CAPABILITY_LABELS[cap]}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
 
       {/* Price + CTA */}
-      <View className="flex-row justify-between items-center mt-2">
-        <Text className="text-white text-lg font-medium">
-          {tier.price.monthly} / month
-        </Text>
+      <View className="flex-row justify-between items-center pt-3 border-t border-neutral-800">
+        <View>
+          <Text className="text-white text-xl font-bold">
+            ${price.toFixed(2)}
+          </Text>
+          <Text className="text-neutral-500 text-xs">{cycleLabel}</Text>
+        </View>
 
-        <View
-          className={`px-4 py-2 rounded-xl ${
-            isActive ? "bg-neutral-800" : "bg-indigo-600"
+        <Pressable
+          onPress={isActive && !isCancelled ? undefined : onSelect}
+          disabled={isLoading || (isActive && !isCancelled)}
+          className={`px-5 py-2.5 rounded-xl ${
+            isActive && !isCancelled
+              ? "bg-neutral-800"
+              : TIER_BUTTON_COLORS[tier.id]
           }`}
         >
-          <Text className="text-white text-sm font-medium">
-            {isActive ? "Current Plan" : "Continue"}
+          <Text className="text-white text-sm font-semibold">
+            {isLoading ? "..." : ctaLabel}
           </Text>
-        </View>
+        </Pressable>
       </View>
     </Pressable>
   );

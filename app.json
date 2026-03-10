@@ -28,9 +28,6 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/elite-scope-splash.png",
-          "imageWidth": 430,
-          "resizeMode": "cover",
           "backgroundColor": "#03070F"
         }
       ],
