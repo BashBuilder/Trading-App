@@ -222,7 +222,7 @@ export default function DashboardScreen() {
             {getGreeting()}, {user?.firstName ?? "Trader"}
           </Text>
           <Text className="text-white text-2xl font-bold mt-0.5">
-            Market Intelligence
+            Elite Scope Market Intelligence
           </Text>
         </View>
 
