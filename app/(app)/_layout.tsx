@@ -5,16 +5,18 @@ import { clearToken, getToken } from "@/services/token.service";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 
 export default function TabLayout() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+
   const checkAuth = async () => {
     try {
       const token = await getToken();
       if (!token) {
         router.replace("/login");
+        return;
       }
       const user = await axios.get("auth/user", {
         headers: { Authorization: `Bearer ${token}` },
@@ -34,50 +36,58 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-
         tabBarStyle: {
           position: "absolute",
-          bottom: 10,
-          left: 10,
-          right: 10,
+          bottom: Platform.OS === "ios" ? 24 : 16,
+          left: 20,
+          right: 20,
           elevation: 0,
-          // backgroundColor: "#020617",
-          backgroundColor: "#000",
-          borderRadius: 32,
-          height: 75,
+          backgroundColor: "#0a0a0f",
+          borderRadius: 36,
+          height: 68,
           borderTopWidth: 0,
-          shadowColor: "#000",
-          shadowOpacity: 0.25,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: 10 },
+          borderWidth: 1,
+          borderColor: "rgba(99, 102, 241, 0.15)",
+          shadowColor: "#6366f1",
+          shadowOpacity: 0.12,
+          shadowRadius: 24,
+          shadowOffset: { width: 0, height: 8 },
         },
-
-        tabBarActiveTintColor: "#6366f1",
-        tabBarInactiveTintColor: "#64748b",
-
+        tabBarActiveTintColor: "#818cf8",
+        tabBarInactiveTintColor: "#374151",
         tabBarLabelStyle: {
-          fontSize: 11,
-          marginBottom: 6,
-          fontWeight: "500",
+          fontSize: 10,
+          fontWeight: "600",
+          letterSpacing: 0.3,
+          marginBottom: 8,
         },
-
         tabBarItemStyle: {
-          paddingTop: 8,
+          paddingTop: 10,
         },
       }}
     >
-      {/* Dashboard */}
+      {/* ── Visible tabs ───────────────────────────────────── */}
+
       <Tabs.Screen
         name="dashboard"
         options={{
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
             <View
-              className={`p-2 rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
+              style={{
+                width: 36,
+                height: 28,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 12,
+                backgroundColor: focused
+                  ? "rgba(99,102,241,0.18)"
+                  : "transparent",
+              }}
             >
               <Ionicons
-                name={focused ? "analytics" : "analytics-outline"}
-                size={13}
+                name={focused ? "home" : "home-outline"}
+                size={18}
                 color={color}
               />
             </View>
@@ -85,18 +95,26 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Tools */}
       <Tabs.Screen
         name="tools"
         options={{
           title: "Tools",
           tabBarIcon: ({ color, focused }) => (
             <View
-              className={`p-2 rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
+              style={{
+                width: 36,
+                height: 28,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 12,
+                backgroundColor: focused
+                  ? "rgba(99,102,241,0.18)"
+                  : "transparent",
+              }}
             >
               <Ionicons
                 name={focused ? "construct" : "construct-outline"}
-                size={13}
+                size={18}
                 color={color}
               />
             </View>
@@ -104,37 +122,61 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Insights */}
+      {/* Centre focal tab — Signals */}
       <Tabs.Screen
-        name="insights"
+        name="insights/index"
         options={{
           title: "Signals",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ focused }) => (
             <View
-              className={`p-2 rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 26,
+                backgroundColor: focused ? "#6366f1" : "#1e1b4b",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 20,
+                borderWidth: 2,
+                borderColor: focused ? "#818cf8" : "rgba(99,102,241,0.25)",
+                shadowColor: "#6366f1",
+                shadowOpacity: focused ? 0.5 : 0.2,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: focused ? 8 : 3,
+              }}
             >
               <Ionicons
                 name={focused ? "pulse" : "pulse-outline"}
-                size={13}
-                color={color}
+                size={22}
+                color={focused ? "#ffffff" : "#818cf8"}
               />
             </View>
           ),
+          tabBarLabel: () => null, // hide label for centre tab
         }}
       />
 
-      {/* Subscription */}
       <Tabs.Screen
         name="paywall"
         options={{
           title: "Pro",
           tabBarIcon: ({ color, focused }) => (
             <View
-              className={`p-2 rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
+              style={{
+                width: 36,
+                height: 28,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 12,
+                backgroundColor: focused
+                  ? "rgba(99,102,241,0.18)"
+                  : "transparent",
+              }}
             >
               <Ionicons
                 name={focused ? "diamond" : "diamond-outline"}
-                size={13}
+                size={18}
                 color={color}
               />
             </View>
@@ -142,24 +184,38 @@ export default function TabLayout() {
         }}
       />
 
-      {/* History */}
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
           tabBarIcon: ({ color, focused }) => (
             <View
-              className={`p-2  rounded-xl ${focused ? "bg-indigo-600/20" : ""}`}
+              style={{
+                width: 36,
+                height: 28,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 12,
+                backgroundColor: focused
+                  ? "rgba(99,102,241,0.18)"
+                  : "transparent",
+              }}
             >
               <Ionicons
-                name={focused ? "time" : "time-outline"}
-                size={13}
+                name={focused ? "person" : "person-outline"}
+                size={18}
                 color={color}
               />
             </View>
           ),
         }}
       />
+
+      {/* ── Hidden routes (not tabs) ────────────────────────── */}
+
+      {/* Hides the insights/[id] signal detail from tab bar */}
+      <Tabs.Screen name="insights/[id]" options={{ href: null }} />
+      <Tabs.Screen name="insight/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

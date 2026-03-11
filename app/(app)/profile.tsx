@@ -7,10 +7,11 @@ import {
 } from "@/services/subscription.service";
 import { clearToken } from "@/services/token.service";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Pressable,
   ScrollView,
   Text,
@@ -47,17 +48,47 @@ const CAPABILITY_LABELS: Record<string, string> = {
 function Avatar({
   firstName,
   lastName,
+  onLongPress,
 }: {
   firstName?: string;
   lastName?: string;
+  onLongPress: () => void;
 }) {
   const initials =
     [firstName?.[0], lastName?.[0]].filter(Boolean).join("").toUpperCase() ||
     "?";
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.92,
+      useNativeDriver: true,
+      speed: 50,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+    }).start();
+  };
+
   return (
-    <View className="w-20 h-20 rounded-full bg-indigo-600 items-center justify-center border-2 border-indigo-400/40">
-      <Text className="text-white text-2xl font-bold">{initials}</Text>
-    </View>
+    <Pressable
+      onLongPress={onLongPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      delayLongPress={800}
+    >
+      <Animated.View
+        style={{ transform: [{ scale }] }}
+        className="w-20 h-20 rounded-full bg-indigo-600 items-center justify-center border-2 border-indigo-400/40"
+      >
+        <Text className="text-white text-2xl font-bold">{initials}</Text>
+      </Animated.View>
+    </Pressable>
   );
 }
 
@@ -92,6 +123,20 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleAdminAccess = () => {
+    if (user?.role !== "admin") {
+      // Silently ignore for non-admins — no hint that admin exists
+      return;
+    }
+    Alert.alert("Admin Panel", "Access the signal management dashboard?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Open Admin",
+        onPress: () => router.push("/(admin)/signals"),
+      },
+    ]);
+  };
+
   const handleLogout = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
@@ -121,7 +166,7 @@ export default function ProfileScreen() {
 
   const isActiveSub = subscription && subscription.status === "active";
 
-  const fullName = `${user.firstName} ${user.lastName} `;
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(" ");
 
   return (
     <ScreenWrapper title="Profile">
@@ -132,7 +177,12 @@ export default function ProfileScreen() {
       >
         {/* ── Avatar + name ── */}
         <View className="items-center mb-8 pt-2">
-          <Avatar firstName={user?.firstName} lastName={user?.lastName} />
+          <Avatar
+            firstName={user?.firstName}
+            lastName={user?.lastName}
+            onLongPress={handleAdminAccess}
+          />
+
           <Text className="text-neutral-500 text-sm mt-1">
             {user?.email || "—"}
           </Text>
