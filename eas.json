@@ -10,7 +10,11 @@
     },
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "NODE_ENV": "production"
+        }
       },
       "env": {
         "npm_config_legacy_peer_deps": "true"

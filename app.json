@@ -7,7 +7,7 @@
     "icon": "./assets/images/elite-scope-icon.png",
     "scheme": "sample",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
