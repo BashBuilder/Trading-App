@@ -7,7 +7,7 @@
     "icon": "./assets/images/elite-scope-icon.png",
     "scheme": "sample",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
@@ -17,7 +17,8 @@
         "foregroundImage": "./assets/images/elite-scope-icon.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.thimmy.sample"
     },
     "web": {
       "output": "static",
@@ -35,7 +36,13 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c25474d9-b7be-4b70-ab9c-b694866662f3"
+      }
     }
   }
 }
