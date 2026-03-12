@@ -1,4 +1,3 @@
-// app/(admin)/_layout.tsx
 import { useAppSelector } from "@/hooks/hooks";
 import { Redirect, Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
