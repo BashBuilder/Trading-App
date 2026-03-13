@@ -29,7 +29,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#03070F"
+          "backgroundColor": "#03070F",
+          "image": "./assets/images/elite-scope-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
         }
       ],
       "expo-secure-store"
