@@ -3,11 +3,10 @@ import { TierCard } from "@/components/card/TierCard";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { LINKS } from "@/config/links";
 import {
-  BillingCycle,
   Subscription,
-  Tier,
   subscriptionService,
 } from "@/services/subscription.service";
+import { BillingCycle, Tier } from "@/services/tier.service";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,

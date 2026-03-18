@@ -1,7 +1,7 @@
 // services/subscription.service.ts
 import axios from "@/config/axios";
+import { BillingCycle, Tier } from "./tier.service";
 
-export type BillingCycle = "monthly" | "annual" | "oneTime";
 export type TierId = "explorer" | "strategist" | "mathematician";
 export type SubscriptionStatus = "active" | "cancelled" | "expired";
 
@@ -9,14 +9,6 @@ export interface TierPrice {
   monthly: number;
   annual: number;
   oneTime: number;
-}
-
-export interface Tier {
-  id: TierId;
-  name: string;
-  description: string;
-  capabilities: string[];
-  price: TierPrice;
 }
 
 export interface Subscription {
