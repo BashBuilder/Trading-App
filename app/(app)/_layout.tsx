@@ -215,7 +215,7 @@ export default function TabLayout() {
 
       {/* Hides the insights/[id] signal detail from tab bar */}
       <Tabs.Screen name="insights/[id]" options={{ href: null }} />
-      <Tabs.Screen name="insight/[id]" options={{ href: null }} />
+      {/* <Tabs.Screen name="insight/[id]" options={{ href: null }} /> */}
     </Tabs>
   );
 }

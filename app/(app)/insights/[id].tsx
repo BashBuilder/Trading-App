@@ -1,4 +1,6 @@
 // app/(app)/signal/[id].tsx
+import { TIER_DISPLAY } from "@/constants/constants";
+import { TIER_COLORS } from "@/constants/profile";
 import { Signal, signalService } from "@/services/signal.service";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -10,30 +12,6 @@ import {
   Text,
   View,
 } from "react-native";
-
-const TIER_COLORS = {
-  explorer: {
-    text: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/30",
-  },
-  strategist: {
-    text: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    border: "border-indigo-500/30",
-  },
-  mathematician: {
-    text: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/30",
-  },
-};
-
-const TIER_DISPLAY = {
-  explorer: "The Explorer",
-  strategist: "The Strategist",
-  mathematician: "The Mathematician",
-};
 
 function PriceLevel({
   label,
@@ -90,23 +68,10 @@ export default function SignalDetailScreen() {
   const loadSignal = async () => {
     try {
       setLoading(true);
-      // Try full detail fetch first
       const data = await signalService.getById(id);
       setSignal(data);
     } catch (err: any) {
-      if (err?.response?.status === 403) {
-        // Tier-gated — load from list to show preview
-        try {
-          const list = await signalService.getAll();
-          const found = list.find((s) => s.id === id);
-          if (found) setSignal(found);
-          else setError("Signal not found.");
-        } catch {
-          setError("Unable to load signal.");
-        }
-      } else {
-        setError("Unable to load signal.");
-      }
+      setError("Unable to load signal.");
     } finally {
       setLoading(false);
     }

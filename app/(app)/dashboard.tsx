@@ -1,10 +1,9 @@
-// app/(app)/dashboard.tsx
+import { TIER_DISPLAY } from "@/constants/constants";
+import { TIER_COLORS } from "@/constants/profile";
 import { useAppSelector } from "@/hooks/hooks";
+import { updateSubscription } from "@/hooks/processes/subscription-reducer";
 import { Signal, signalService } from "@/services/signal.service";
-import {
-  Subscription,
-  subscriptionService,
-} from "@/services/subscription.service";
+import { subscriptionService } from "@/services/subscription.service";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -15,84 +14,13 @@ import {
   Text,
   View,
 } from "react-native";
-
-const TIER_COLORS = {
-  explorer: {
-    text: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/30",
-  },
-  strategist: {
-    text: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    border: "border-indigo-500/30",
-  },
-  mathematician: {
-    text: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/30",
-  },
-};
-
-const TIER_DISPLAY = {
-  explorer: "The Explorer",
-  strategist: "The Strategist",
-  mathematician: "The Mathematician",
-};
+import { useDispatch } from "react-redux";
 
 function getGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
   return "Good evening";
-}
-
-function MarketRegimeCard() {
-  // In production: fetch from a dedicated /market/regime endpoint
-  const regimes = [
-    { label: "Overall Bias", value: "Bullish", color: "text-emerald-400" },
-    { label: "Volatility", value: "Moderate", color: "text-yellow-400" },
-    { label: "Session", value: "London", color: "text-cyan-400" },
-  ];
-
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZoneName: "short",
-  });
-
-  return (
-    <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-5 overflow-hidden">
-      {/* Top accent */}
-      <View className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500/50" />
-
-      <View className="flex-row justify-between items-start mb-4">
-        <View>
-          <Text className="text-neutral-500 text-xs uppercase tracking-widest">
-            Market Regime
-          </Text>
-          <Text className="text-white text-2xl font-bold mt-1">Mixed</Text>
-        </View>
-        <View className="px-2.5 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-          <Text className="text-emerald-400 text-xs font-medium">Live</Text>
-        </View>
-      </View>
-
-      <View className="flex-row justify-between">
-        {regimes.map((r) => (
-          <View key={r.label} className="items-center">
-            <Text className={`text-sm font-semibold ${r.color}`}>
-              {r.value}
-            </Text>
-            <Text className="text-neutral-600 text-xs mt-0.5">{r.label}</Text>
-          </View>
-        ))}
-      </View>
-
-      <Text className="text-neutral-700 text-xs mt-4">Updated {timeStr}</Text>
-    </View>
-  );
 }
 
 function StatCard({
@@ -169,9 +97,10 @@ export default function DashboardScreen() {
   const router = useRouter();
   const user = useAppSelector((state) => state.auth.user);
   const [signals, setSignals] = useState<Signal[]>([]);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const dispatch = useDispatch();
+  const { subscription } = useAppSelector((state) => state.subscription);
 
   const fetchData = async () => {
     try {
@@ -180,7 +109,7 @@ export default function DashboardScreen() {
         subscriptionService.getCurrent(),
       ]);
       setSignals(sigs);
-      setSubscription(sub);
+      dispatch(updateSubscription(sub));
     } catch {
       // handle silently
     } finally {
@@ -188,7 +117,6 @@ export default function DashboardScreen() {
       setRefreshing(false);
     }
   };
-
   useEffect(() => {
     fetchData();
   }, []);
@@ -229,7 +157,7 @@ export default function DashboardScreen() {
         {/* ── Subscription banner / nudge ── */}
         {subscription?.status === "active" && tierColors ? (
           <View
-            className={`flex-row items-center justify-between px-4 py-2.5 rounded-xl border ${tierColors.border} ${tierColors.bg} mb-5`}
+            className={`flex-row items-center justify-between px-4 py-2.5 rounded-xl border ${tierColors?.border || ""} ${tierColors.bg} mb-5`}
           >
             <Text className={`text-xs font-semibold ${tierColors.text}`}>
               {TIER_DISPLAY[subscription.tierId]}
@@ -256,9 +184,6 @@ export default function DashboardScreen() {
             </Text>
           </Pressable>
         )}
-
-        {/* ── Market regime ── */}
-        <MarketRegimeCard />
 
         {/* ── Stats row ── */}
         <View className="flex-row gap-3 mb-5">

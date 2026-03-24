@@ -1,6 +1,6 @@
 // reducers.js
 import axios from "@/config/axios";
-import { clearToken, getToken, isTokenExpired } from "@/services/token.service";
+import { clearToken } from "@/services/token.service";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 type AuthState = {
@@ -18,21 +18,6 @@ const initialState: AuthState = {
   error: null,
   isAuthenticated: false,
 };
-
-export const hydrateAuth = createAsyncThunk(
-  "auth/hydrate",
-  async (_, { rejectWithValue }) => {
-    const token = await getToken();
-    if (!token) return null;
-    const expired = await isTokenExpired();
-    if (expired) {
-      await clearToken();
-      return null;
-    }
-
-    return token;
-  },
-);
 
 export const loginRequest = createAsyncThunk(
   "auth/login",
@@ -53,7 +38,6 @@ export const loginRequest = createAsyncThunk(
       return rejectWithValue(
         error?.response?.data?.errors?.[0] ||
           error?.response?.data?.message ||
-          error?.message ||
           "Error signing in, try again",
       );
     }
@@ -83,7 +67,6 @@ export const registerRequest = createAsyncThunk(
       return rejectWithValue(
         error?.response?.data?.errors?.[0] ||
           error?.response?.data?.message ||
-          error?.message ||
           "Error during registration",
       );
     }
