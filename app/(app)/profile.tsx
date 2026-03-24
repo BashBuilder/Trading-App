@@ -155,10 +155,6 @@ export default function ProfileScreen() {
             lastName={user?.lastName}
             onLongPress={handleAdminAccess}
           />
-          {/* <Text className="text-neutral-500 text-sm mt-1">
-            {user?.email || "—"}
-          </Text> */}
-
           {/* Tier badge */}
           {isActiveSub && tierColors && (
             <View

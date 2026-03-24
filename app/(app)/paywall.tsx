@@ -2,10 +2,9 @@
 import { TierCard } from "@/components/card/TierCard";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { LINKS } from "@/config/links";
-import {
-  Subscription,
-  subscriptionService,
-} from "@/services/subscription.service";
+import { useAppSelector } from "@/hooks/hooks";
+import { updateSubscription } from "@/hooks/processes/subscription-reducer";
+import { subscriptionService } from "@/services/subscription.service";
 import { BillingCycle, Tier } from "@/services/tier.service";
 import { useEffect, useState } from "react";
 import {
@@ -17,6 +16,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 
 const BILLING_CYCLES: { key: BillingCycle; label: string }[] = [
   { key: "monthly", label: "Monthly" },
@@ -26,11 +26,12 @@ const BILLING_CYCLES: { key: BillingCycle; label: string }[] = [
 
 export default function PaywallScreen() {
   const [tiers, setTiers] = useState<Tier[]>([]);
-  const [currentSub, setCurrentSub] = useState<Subscription | null>(null);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [loadingTierId, setLoadingTierId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { subscription } = useAppSelector((state) => state.subscription);
 
   useEffect(() => {
     fetchData();
@@ -44,7 +45,7 @@ export default function PaywallScreen() {
         subscriptionService.getCurrent(),
       ]);
       setTiers(tiersData);
-      setCurrentSub(subData);
+      dispatch(updateSubscription(subData));
     } catch (err) {
       Alert.alert("Error", "Failed to load subscription data.");
     } finally {
@@ -54,7 +55,7 @@ export default function PaywallScreen() {
 
   const handleSubscribe = async (tierId: string) => {
     // If already active on same tier, do nothing
-    if (currentSub?.tierId === tierId && currentSub?.status === "active")
+    if (subscription?.tierId === tierId && subscription?.status === "active")
       return;
 
     Alert.alert(
@@ -71,10 +72,15 @@ export default function PaywallScreen() {
                 tierId as any,
                 billingCycle,
               );
-              setCurrentSub(sub);
+              dispatch(updateSubscription(sub));
+              // setCurrentSub(sub);
               Alert.alert("Success", "Your subscription is now active.");
-            } catch {
-              Alert.alert("Error", "Subscription failed. Please try again.");
+            } catch (error: any) {
+              Alert.alert(
+                "Error",
+                JSON.stringify(error.response?.data?.message || error.body) ||
+                  "Subscription failed. Please try again.",
+              );
             } finally {
               setLoadingTierId(null);
             }
@@ -97,8 +103,12 @@ export default function PaywallScreen() {
             try {
               setCancelling(true);
               await subscriptionService.cancel();
-              setCurrentSub((prev) =>
-                prev ? { ...prev, status: "cancelled" } : null,
+              dispatch(
+                updateSubscription(
+                  subscription
+                    ? { ...subscription, status: "cancelled" }
+                    : null,
+                ),
               );
               Alert.alert(
                 "Cancelled",
@@ -125,7 +135,11 @@ export default function PaywallScreen() {
   };
 
   return (
-    <ScreenWrapper title="EliteScope Access">
+    <ScreenWrapper
+      onRefresh={fetchData}
+      refreshing={pageLoading}
+      title="EliteScope Access"
+    >
       {pageLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator color="#6366f1" size="large" />
@@ -145,7 +159,7 @@ export default function PaywallScreen() {
           </Text>
 
           {/* Current plan banner */}
-          {currentSub && currentSub.status !== "expired" && (
+          {subscription && subscription.status !== "expired" && (
             <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-6">
               <View className="flex-row justify-between items-start">
                 <View>
@@ -153,37 +167,37 @@ export default function PaywallScreen() {
                     Current Plan
                   </Text>
                   <Text className="text-white font-semibold text-base">
-                    {currentSub.tierName}
+                    {subscription.tierName}
                   </Text>
                   <Text className="text-neutral-500 text-xs mt-0.5 capitalize">
-                    {currentSub.billingCycle === "oneTime"
+                    {subscription.billingCycle === "oneTime"
                       ? "Lifetime access"
-                      : `${currentSub.billingCycle} · Renews ${formatExpiry(currentSub.expiresAt)}`}
+                      : `${subscription.billingCycle} · Renews ${formatExpiry(subscription.expiresAt)}`}
                   </Text>
                 </View>
 
                 <View
                   className={`px-3 py-1 rounded-full ${
-                    currentSub.status === "cancelled"
+                    subscription.status === "cancelled"
                       ? "bg-red-500/10"
                       : "bg-emerald-500/10"
                   }`}
                 >
                   <Text
                     className={`text-xs font-medium capitalize ${
-                      currentSub.status === "cancelled"
+                      subscription.status === "cancelled"
                         ? "text-red-400"
                         : "text-emerald-400"
                     }`}
                   >
-                    {currentSub.status}
+                    {subscription.status}
                   </Text>
                 </View>
               </View>
 
               {/* Cancel link — only show if active and not lifetime */}
-              {currentSub.status === "active" &&
-                currentSub.billingCycle !== "oneTime" && (
+              {subscription.status === "active" &&
+                subscription.billingCycle !== "oneTime" && (
                   <Pressable
                     onPress={handleCancel}
                     disabled={cancelling}
@@ -235,12 +249,12 @@ export default function PaywallScreen() {
               tier={tier}
               billingCycle={billingCycle}
               isActive={
-                currentSub?.tierId === tier.id &&
-                currentSub?.status !== "expired"
+                subscription?.tierId === tier.id &&
+                subscription?.status !== "expired"
               }
               isCancelled={
-                currentSub?.tierId === tier.id &&
-                currentSub?.status === "cancelled"
+                subscription?.tierId === tier.id &&
+                subscription?.status === "cancelled"
               }
               isLoading={loadingTierId === tier.id}
               onSelect={() => handleSubscribe(tier.id)}
