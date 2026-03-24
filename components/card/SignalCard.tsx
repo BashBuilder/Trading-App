@@ -1,25 +1,9 @@
 // components/signal-card/SignalCard.tsx
+import { REQUIRED_TIER, TIER_LABELS } from "@/constants/constants";
+import { TIER_COLORS } from "@/constants/profile";
 import { AccessLevel, Signal } from "@/services/signal.service";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
-
-const TIER_LABELS: Record<string, string> = {
-  explorer: "Explorer",
-  strategist: "Strategist",
-  mathematician: "Mathematician",
-};
-
-const TIER_COLORS: Record<string, { text: string; bg: string }> = {
-  explorer: { text: "text-cyan-400", bg: "bg-cyan-500/10" },
-  strategist: { text: "text-indigo-400", bg: "bg-indigo-500/10" },
-  mathematician: { text: "text-violet-400", bg: "bg-violet-500/10" },
-};
-
-const REQUIRED_TIER: Record<string, string> = {
-  explorer: "Explorer",
-  strategist: "Strategist",
-  mathematician: "Mathematician",
-};
 
 function LockOverlay({
   accessLevel,
@@ -66,18 +50,15 @@ export function SignalCard({ signal }: { signal: Signal }) {
 
   const handlePress = () => {
     if (signal.accessLevel === "full") {
-      // router.push(`/(app)/signal/${signal.id}`);
-      // router.push(`/(app)/signal/${signal.id}`);
       router.push({
-        pathname: "/(app)/signal/[id]",
+        pathname: "/(app)/insights/[id]",
         params: { id: signal.id },
       });
     } else if (signal.accessLevel === "preview") {
       router.push({
-        pathname: "/(app)/signal/[id]",
+        pathname: "/(app)/insights/[id]",
         params: { id: signal.id },
       });
-      // router.push(`/(app)/signal/${signal.id}`);
     }
     // locked: do nothing, overlay handles upgrade
   };
@@ -152,7 +133,6 @@ export function SignalCard({ signal }: { signal: Signal }) {
           )}
         </View>
       </View>
-
       {/* Lock overlay */}
       {isLocked && (
         <LockOverlay accessLevel={signal.accessLevel} tier={signal.tier} />

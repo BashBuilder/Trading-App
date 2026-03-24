@@ -1,9 +1,14 @@
 // app/(app)/tools.tsx
 import ScreenWrapper from "@/components/ScreenWrapper";
 import {
-  Subscription,
-  subscriptionService,
-} from "@/services/subscription.service";
+  CAPABILITY_TIER,
+  TIER_DISPLAY,
+  TIER_RANK,
+} from "@/constants/constants";
+import { TIER_COLORS } from "@/constants/profile";
+import { useAppSelector } from "@/hooks/hooks";
+import { updateSubscription } from "@/hooks/processes/subscription-reducer";
+import { subscriptionService } from "@/services/subscription.service";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -14,45 +19,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-const TIER_RANK: Record<string, number> = {
-  explorer: 0,
-  strategist: 1,
-  mathematician: 2,
-};
-
-const CAPABILITY_TIER: Record<string, string> = {
-  coreSignals: "explorer",
-  advancedIndicators: "strategist",
-  analytics: "mathematician",
-};
-
-const TIER_DISPLAY: Record<string, string> = {
-  explorer: "The Explorer",
-  strategist: "The Strategist",
-  mathematician: "The Mathematician",
-};
-
-const TIER_COLORS: Record<
-  string,
-  { text: string; bg: string; border: string }
-> = {
-  explorer: {
-    text: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/30",
-  },
-  strategist: {
-    text: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    border: "border-indigo-500/30",
-  },
-  mathematician: {
-    text: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/30",
-  },
-};
+import { useDispatch } from "react-redux";
 
 function LockedTool({ requiredTier }: { requiredTier: string }) {
   const router = useRouter();
@@ -206,122 +173,123 @@ function RiskCalculator({ locked }: { locked: boolean }) {
   );
 }
 
-function MarketScanTool({ locked }: { locked: boolean }) {
-  return (
-    <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-4 overflow-hidden relative">
-      <Text className="text-white font-semibold text-base mb-1">
-        Structured Market Scan
-      </Text>
-      <Text className="text-neutral-500 text-xs mb-4">
-        Analyze structural movement across selected instruments.
-      </Text>
+// function MarketScanTool({ locked }: { locked: boolean }) {
+//   return (
+//     <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-4 overflow-hidden relative">
+//       <Text className="text-white font-semibold text-base mb-1">
+//         Structured Market Scan
+//       </Text>
+//       <Text className="text-neutral-500 text-xs mb-4">
+//         Analyze structural movement across selected instruments.
+//       </Text>
 
-      <View className="flex-row flex-wrap gap-2 mb-4">
-        {["EURUSD", "XAUUSD", "NAS100", "GBPUSD", "USDJPY"].map((sym) => (
-          <Pressable
-            key={sym}
-            disabled={locked}
-            className="px-3 py-1.5 bg-neutral-800 border border-neutral-700 rounded-lg"
-          >
-            <Text className="text-neutral-300 text-xs font-medium">{sym}</Text>
-          </Pressable>
-        ))}
-      </View>
+//       <View className="flex-row flex-wrap gap-2 mb-4">
+//         {["EURUSD", "XAUUSD", "NAS100", "GBPUSD", "USDJPY"].map((sym) => (
+//           <Pressable
+//             key={sym}
+//             disabled={locked}
+//             className="px-3 py-1.5 bg-neutral-800 border border-neutral-700 rounded-lg"
+//           >
+//             <Text className="text-neutral-300 text-xs font-medium">{sym}</Text>
+//           </Pressable>
+//         ))}
+//       </View>
 
-      <Pressable
-        disabled={locked}
-        className="bg-indigo-600 py-3 rounded-xl items-center"
-        onPress={() =>
-          Alert.alert(
-            "Scan Complete",
-            "No structural divergence detected across selected instruments.",
-          )
-        }
-      >
-        <Text className="text-white font-medium">Run Scan</Text>
-      </Pressable>
+//       <Pressable
+//         disabled={locked}
+//         className="bg-indigo-600 py-3 rounded-xl items-center"
+//         onPress={() =>
+//           Alert.alert(
+//             "Scan Complete",
+//             "No structural divergence detected across selected instruments.",
+//           )
+//         }
+//       >
+//         <Text className="text-white font-medium">Run Scan</Text>
+//       </Pressable>
 
-      {locked && <LockedTool requiredTier="strategist" />}
-    </View>
-  );
-}
+//       {locked && <LockedTool requiredTier="strategist" />}
+//     </View>
+//   );
+// }
 
-function IndicatorOverlayTool({ locked }: { locked: boolean }) {
-  return (
-    <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-4 overflow-hidden relative">
-      <Text className="text-white font-semibold text-base mb-1">
-        Indicator Overlay
-      </Text>
-      <Text className="text-neutral-500 text-xs mb-3">
-        Structural alignment across timeframes.
-      </Text>
+// function IndicatorOverlayTool({ locked }: { locked: boolean }) {
+//   return (
+//     <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-4 overflow-hidden relative">
+//       <Text className="text-white font-semibold text-base mb-1">
+//         Indicator Overlay
+//       </Text>
+//       <Text className="text-neutral-500 text-xs mb-3">
+//         Structural alignment across timeframes.
+//       </Text>
 
-      <View className="gap-2">
-        {[
-          {
-            label: "H1 Structure",
-            value: "Bullish",
-            color: "text-emerald-400",
-          },
-          { label: "H4 Trend", value: "Neutral", color: "text-yellow-400" },
-          { label: "D1 Bias", value: "Bullish", color: "text-emerald-400" },
-        ].map((row) => (
-          <View
-            key={row.label}
-            className="flex-row justify-between items-center py-2 border-b border-neutral-800"
-          >
-            <Text className="text-neutral-400 text-sm">{row.label}</Text>
-            <Text className={`text-sm font-semibold ${row.color}`}>
-              {row.value}
-            </Text>
-          </View>
-        ))}
-      </View>
+//       <View className="gap-2">
+//         {[
+//           {
+//             label: "H1 Structure",
+//             value: "Bullish",
+//             color: "text-emerald-400",
+//           },
+//           { label: "H4 Trend", value: "Neutral", color: "text-yellow-400" },
+//           { label: "D1 Bias", value: "Bullish", color: "text-emerald-400" },
+//         ].map((row) => (
+//           <View
+//             key={row.label}
+//             className="flex-row justify-between items-center py-2 border-b border-neutral-800"
+//           >
+//             <Text className="text-neutral-400 text-sm">{row.label}</Text>
+//             <Text className={`text-sm font-semibold ${row.color}`}>
+//               {row.value}
+//             </Text>
+//           </View>
+//         ))}
+//       </View>
 
-      {locked && <LockedTool requiredTier="strategist" />}
-    </View>
-  );
-}
+//       {locked && <LockedTool requiredTier="strategist" />}
+//     </View>
+//   );
+// }
 
-function AnalyticsTool({ locked }: { locked: boolean }) {
-  return (
-    <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-4 overflow-hidden relative">
-      <Text className="text-white font-semibold text-base mb-1">
-        Deep Analytics
-      </Text>
-      <Text className="text-neutral-500 text-xs mb-3">
-        Comprehensive structural analytics & pattern recognition.
-      </Text>
+// function AnalyticsTool({ locked }: { locked: boolean }) {
+//   return (
+//     <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 mb-4 overflow-hidden relative">
+//       <Text className="text-white font-semibold text-base mb-1">
+//         Deep Analytics
+//       </Text>
+//       <Text className="text-neutral-500 text-xs mb-3">
+//         Comprehensive structural analytics & pattern recognition.
+//       </Text>
 
-      <View className="flex-row gap-3">
-        <View className="flex-1 bg-neutral-800 rounded-xl p-3 items-center">
-          <Text className="text-violet-400 font-bold text-xl">94%</Text>
-          <Text className="text-neutral-600 text-xs mt-0.5">Pattern Match</Text>
-        </View>
-        <View className="flex-1 bg-neutral-800 rounded-xl p-3 items-center">
-          <Text className="text-emerald-400 font-bold text-xl">1:3.2</Text>
-          <Text className="text-neutral-600 text-xs mt-0.5">Avg R:R</Text>
-        </View>
-        <View className="flex-1 bg-neutral-800 rounded-xl p-3 items-center">
-          <Text className="text-white font-bold text-xl">12</Text>
-          <Text className="text-neutral-600 text-xs mt-0.5">Setups</Text>
-        </View>
-      </View>
+//       <View className="flex-row gap-3">
+//         <View className="flex-1 bg-neutral-800 rounded-xl p-3 items-center">
+//           <Text className="text-violet-400 font-bold text-xl">94%</Text>
+//           <Text className="text-neutral-600 text-xs mt-0.5">Pattern Match</Text>
+//         </View>
+//         <View className="flex-1 bg-neutral-800 rounded-xl p-3 items-center">
+//           <Text className="text-emerald-400 font-bold text-xl">1:3.2</Text>
+//           <Text className="text-neutral-600 text-xs mt-0.5">Avg R:R</Text>
+//         </View>
+//         <View className="flex-1 bg-neutral-800 rounded-xl p-3 items-center">
+//           <Text className="text-white font-bold text-xl">12</Text>
+//           <Text className="text-neutral-600 text-xs mt-0.5">Setups</Text>
+//         </View>
+//       </View>
 
-      {locked && <LockedTool requiredTier="mathematician" />}
-    </View>
-  );
-}
+//       {locked && <LockedTool requiredTier="mathematician" />}
+//     </View>
+//   );
+// }
 
 export default function ToolsScreen() {
   const router = useRouter();
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const { subscription } = useAppSelector((state) => state.subscription);
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     subscriptionService
       .getCurrent()
-      .then(setSubscription)
+      .then((res) => dispatch(updateSubscription(res)))
       .finally(() => setLoading(false));
   }, []);
 
@@ -336,7 +304,7 @@ export default function ToolsScreen() {
     : null;
 
   return (
-    <ScreenWrapper title="Trading Tools">
+    <ScreenWrapper refreshing={false} title="Trading Tools">
       {/* Tier indicator */}
       <View className="flex-row items-center justify-between mb-5 -mt-1">
         <Text className="text-neutral-500 text-sm">Your toolkit</Text>
@@ -365,9 +333,9 @@ export default function ToolsScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <RiskCalculator locked={!hasCapability("coreSignals")} />
-        <MarketScanTool locked={!hasCapability("advancedIndicators")} />
+        {/* <MarketScanTool locked={!hasCapability("advancedIndicators")} />
         <IndicatorOverlayTool locked={!hasCapability("advancedIndicators")} />
-        <AnalyticsTool locked={!hasCapability("analytics")} />
+        <AnalyticsTool locked={!hasCapability("analytics")} /> */}
       </ScrollView>
     </ScreenWrapper>
   );

@@ -1,5 +1,4 @@
 // app/(app)/insights.tsx
-// import { SignalCard } from "@/components/signal-card/SignalCard";
 import { SignalCard } from "@/components/card/SignalCard";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { Signal, SignalTier, signalService } from "@/services/signal.service";
@@ -7,7 +6,6 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -66,9 +64,13 @@ export default function InsightsScreen() {
   const unlockedCount = signals.filter((s) => s.accessLevel === "full").length;
 
   return (
-    <ScreenWrapper title="Market Signals">
+    <ScreenWrapper
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      title="Market Signals"
+    >
       {/* Sub-header */}
-      <Text className="text-neutral-500 text-sm mb-5 -mt-2">
+      <Text className="text-neutral-500 text-sm mb-5 mt-2">
         Institutional-grade trading insights
       </Text>
 
@@ -127,13 +129,6 @@ export default function InsightsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#6366f1"
-          />
-        }
       >
         {loading ? (
           <View className="items-center py-16">
