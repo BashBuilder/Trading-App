@@ -294,19 +294,24 @@ function AddSubscriptionModal({
 }
 
 function SubscriptionRow({
+  key,
   sub,
   onCancel,
   onViewHistory,
 }: {
+  key: string;
   sub: AdminSubscription;
   onCancel: () => void;
   onViewHistory: () => void;
 }) {
-  const statusColor = STATUS_COLORS[sub.status] ?? STATUS_COLORS.expired;
+  const statusColor = STATUS_COLORS[sub?.status] ?? STATUS_COLORS.expired ?? "";
   const tierColor = TIER_COLORS[sub.tierId] ?? "text-neutral-400";
 
   return (
-    <View className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-3">
+    <View
+      key={key || "1"}
+      className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-3"
+    >
       {/* User info */}
       <View className="flex-row justify-between items-start mb-3">
         <View className="flex-1 mr-3">
@@ -317,9 +322,6 @@ function SubscriptionRow({
           </Text>
           <Text className="text-neutral-500 text-xs mt-0.5">
             {sub.user.email}
-          </Text>
-          <Text className="text-neutral-700 text-xs mt-0.5 font-mono">
-            {sub.uid}
           </Text>
         </View>
 
@@ -335,7 +337,7 @@ function SubscriptionRow({
       {/* Subscription details */}
       <View className="flex-row justify-between items-center mb-3 py-2.5 bg-neutral-800/50 rounded-xl px-3">
         <View>
-          <Text className={`text-sm font-semibold ${tierColor}`}>
+          <Text className={`text-sm font-semibold ${tierColor?.text}`}>
             {sub.tierName}
           </Text>
           <Text className="text-neutral-600 text-xs capitalize mt-0.5">
@@ -394,6 +396,7 @@ export default function AdminSubscriptionsScreen() {
   const [historyName, setHistoryName] = useState("");
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [subs, tierList] = await Promise.all([
         adminSubscriptionService.getAll(statusFilter),
@@ -401,7 +404,7 @@ export default function AdminSubscriptionsScreen() {
       ]);
       setSubscriptions(subs);
       setTiers(tierList);
-    } catch {
+    } catch (error: any) {
       Alert.alert("Error", "Failed to load subscriptions.");
     } finally {
       setLoading(false);
@@ -442,7 +445,7 @@ export default function AdminSubscriptionsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await adminSubscriptionService.cancel(sub.uid);
+              await adminSubscriptionService.cancel(sub.user.email);
               fetchData();
             } catch {
               Alert.alert("Error", "Failed to cancel subscription.");

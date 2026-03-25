@@ -1,4 +1,5 @@
 // app/(admin)/tiers.tsx
+import { PriceInput } from "@/components/PriceInput";
 import { ALL_CAPABILITIES } from "@/constants/constants";
 import { CAPABILITY_LABELS, TIER_COLORS } from "@/constants/profile";
 import {
@@ -20,7 +21,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { PriceInput } from "./PriceInput";
 
 function EditTierModal({
   tier,

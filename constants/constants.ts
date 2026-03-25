@@ -35,4 +35,5 @@ export const STATUS_COLORS: Record<string, { text: string; bg: string }> = {
   active: { text: "text-emerald-400", bg: "bg-emerald-500/10" },
   draft: { text: "text-yellow-400", bg: "bg-yellow-500/10" },
   closed: { text: "text-neutral-500", bg: "bg-neutral-800" },
+  cancelled: { text: "text-red-400", bg: "bg-red-500/10" },
 };

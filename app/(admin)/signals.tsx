@@ -1,4 +1,5 @@
 // app/(admin)/signals.tsx
+import { PriceInput } from "@/components/PriceInput";
 import { STATUS_COLORS } from "@/constants/constants";
 import { TIER_COLORS } from "@/constants/profile";
 import {
@@ -22,7 +23,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { PriceInput } from "./PriceInput";
 
 const EMPTY_FORM: CreateSignalPayload = {
   pair: "",

@@ -21,7 +21,6 @@ export interface AdminSubscription {
     lastName: string;
   };
 }
-// added some console code right here
 
 export const adminSubscriptionService = {
   getAll: async (status?: string): Promise<AdminSubscription[]> => {
