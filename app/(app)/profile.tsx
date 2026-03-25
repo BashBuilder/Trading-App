@@ -2,10 +2,9 @@
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { CAPABILITY_LABELS, TIER_COLORS } from "@/constants/profile";
 import { useAppSelector } from "@/hooks/hooks";
-import {
-  Subscription,
-  subscriptionService,
-} from "@/services/subscription.service";
+import { logout } from "@/hooks/processes/auth-reducer";
+import { updateSubscription } from "@/hooks/processes/subscription-reducer";
+import { subscriptionService } from "@/services/subscription.service";
 import { clearToken } from "@/services/token.service";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -18,6 +17,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 
 function Avatar({
   firstName,
@@ -77,8 +77,9 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export default function ProfileScreen() {
   const router = useRouter();
   const user = useAppSelector((state) => state.auth.user);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [subLoading, setSubLoading] = useState(true);
+  const { subscription } = useAppSelector((state) => state.subscription);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     loadSubscription();
@@ -88,7 +89,7 @@ export default function ProfileScreen() {
     try {
       setSubLoading(true);
       const sub = await subscriptionService.getCurrent();
-      setSubscription(sub);
+      await dispatch(updateSubscription(sub));
     } catch {
       // silently fail — not critical for profile render
     } finally {
@@ -118,6 +119,7 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: async () => {
           await clearToken();
+          dispatch(logout());
           router.replace("/(auth)/login");
         },
       },

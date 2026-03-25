@@ -1,4 +1,6 @@
 // app/(admin)/tiers.tsx
+import { ALL_CAPABILITIES } from "@/constants/constants";
+import { CAPABILITY_LABELS, TIER_COLORS } from "@/constants/profile";
 import {
   Tier,
   TierCapability,
@@ -18,65 +20,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-const CAPABILITY_LABELS: Record<string, string> = {
-  coreSignals: "Core Signals",
-  advancedIndicators: "Advanced Indicators",
-  analytics: "Analytics",
-};
-
-const ALL_CAPABILITIES: TierCapability[] = [
-  "coreSignals",
-  "advancedIndicators",
-  "analytics",
-];
-
-const TIER_COLORS: Record<
-  string,
-  { text: string; bg: string; border: string }
-> = {
-  explorer: {
-    text: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/40",
-  },
-  strategist: {
-    text: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    border: "border-indigo-500/40",
-  },
-  mathematician: {
-    text: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/40",
-  },
-};
-
-function PriceInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <View className="flex-1">
-      <Text className="text-neutral-500 text-xs mb-1">{label}</Text>
-      <View className="flex-row items-center bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2.5">
-        <Text className="text-neutral-500 text-sm mr-1">$</Text>
-        <TextInput
-          className="flex-1 text-white text-sm"
-          keyboardType="numeric"
-          value={String(value)}
-          onChangeText={(v) => onChange(parseFloat(v) || 0)}
-          placeholderTextColor="#525252"
-        />
-      </View>
-    </View>
-  );
-}
+import { PriceInput } from "./PriceInput";
 
 function EditTierModal({
   tier,

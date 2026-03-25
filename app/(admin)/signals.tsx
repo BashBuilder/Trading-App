@@ -1,4 +1,6 @@
 // app/(admin)/signals.tsx
+import { STATUS_COLORS } from "@/constants/constants";
+import { TIER_COLORS } from "@/constants/profile";
 import {
   CreateSignalPayload,
   Signal,
@@ -20,18 +22,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-
-const TIER_COLORS: Record<string, { text: string; bg: string }> = {
-  explorer: { text: "text-cyan-400", bg: "bg-cyan-500/10" },
-  strategist: { text: "text-indigo-400", bg: "bg-indigo-500/10" },
-  mathematician: { text: "text-violet-400", bg: "bg-violet-500/10" },
-};
-
-const STATUS_COLORS: Record<string, { text: string; bg: string }> = {
-  active: { text: "text-emerald-400", bg: "bg-emerald-500/10" },
-  draft: { text: "text-yellow-400", bg: "bg-yellow-500/10" },
-  closed: { text: "text-neutral-500", bg: "bg-neutral-800" },
-};
+import { PriceInput } from "./PriceInput";
 
 const EMPTY_FORM: CreateSignalPayload = {
   pair: "",
@@ -221,16 +212,29 @@ function SignalFormModal({
 
           <View className="flex-row gap-3">
             <View className="flex-1">
-              <FormField
+              <PriceInput
+                label="Entry Price"
+                value={form.entry || 0}
+                onChange={(v) => set("entry", v)}
+                placeholder="1.1001"
+              />
+              {/* <FormField
                 label="Entry Price"
                 value={form.entry ? String(form.entry) : ""}
                 onChangeText={(v) => set("entry", parseFloat(v) || undefined)}
                 placeholder="1.0850"
                 numeric
-              />
+              /> */}
             </View>
             <View className="flex-1">
-              <FormField
+              <PriceInput
+                label="Stop Loss"
+                value={form.stopLoss || 0}
+                onChange={(v) => set("stopLoss", v)}
+                placeholder="1.2000"
+              />
+
+              {/* <FormField
                 label="Stop Loss"
                 value={form.stopLoss ? String(form.stopLoss) : ""}
                 onChangeText={(v) =>
@@ -238,17 +242,24 @@ function SignalFormModal({
                 }
                 placeholder="1.0820"
                 numeric
-              />
+              /> */}
             </View>
           </View>
 
-          <FormField
+          <PriceInput
+            label="Take Profit"
+            value={form.takeProfit || 0}
+            onChange={(v) => set("takeProfit", v)}
+            placeholder="1.0000"
+          />
+
+          {/* <FormField
             label="Take Profit"
             value={form.takeProfit ? String(form.takeProfit) : ""}
             onChangeText={(v) => set("takeProfit", parseFloat(v) || undefined)}
             placeholder="1.0920"
             numeric
-          />
+          /> */}
 
           <FormField
             label="Chart Image URL"

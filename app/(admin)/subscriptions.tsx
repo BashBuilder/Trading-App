@@ -1,4 +1,6 @@
 // app/(admin)/subscriptions.tsx
+import { STATUS_COLORS } from "@/constants/constants";
+import { TIER_COLORS } from "@/constants/profile";
 import {
   AdminSubscription,
   adminSubscriptionService,
@@ -19,18 +21,6 @@ import {
 } from "react-native";
 
 type StatusFilter = "all" | "active" | "cancelled" | "expired";
-
-const STATUS_COLORS: Record<string, { text: string; bg: string }> = {
-  active: { text: "text-emerald-400", bg: "bg-emerald-500/10" },
-  cancelled: { text: "text-red-400", bg: "bg-red-500/10" },
-  expired: { text: "text-neutral-500", bg: "bg-neutral-800" },
-};
-
-const TIER_COLORS: Record<string, string> = {
-  explorer: "text-cyan-400",
-  strategist: "text-indigo-400",
-  mathematician: "text-violet-400",
-};
 
 function HistoryModal({
   visible,
@@ -141,6 +131,7 @@ function AddSubscriptionModal({
   onAdded: () => void;
   tiers: Tier[];
 }) {
+  // const { user } = useAppSelector((state) => state.auth);
   const [uid, setUid] = useState("");
   const [selectedTier, setSelectedTier] = useState<string>("explorer");
   const [billingCycle, setBillingCycle] = useState<string>("monthly");
