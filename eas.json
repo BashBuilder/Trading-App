@@ -17,6 +17,10 @@
           "npm_config_legacy_peer_deps": "true"
         }
       },
+      "ios": {
+        "simulator": false,
+        "distribution": "internal"
+      },
       "env": {
         "npm_config_legacy_peer_deps": "true"
       }
@@ -24,6 +28,10 @@
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false,
+        "distribution": "internal"
       }
     }
   },
