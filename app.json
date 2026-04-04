@@ -2,7 +2,7 @@
   "expo": {
     "name": "Elite Scope",
     "slug": "sample",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/elite-scope-icon.png",
     "scheme": "sample",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.thimmy.sample",
+      "bundleIdentifier": "com.woteva.elite",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
