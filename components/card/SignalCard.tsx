@@ -18,7 +18,7 @@ function LockOverlay({
   return (
     <View
       className={`absolute inset-0 rounded-2xl items-center justify-center ${
-        isFullLock ? "bg-slate-950/85" : "bg-slate-950/60"
+        isFullLock ? "bg-slate-950" : "bg-slate-950"
       }`}
     >
       <Text className="text-2xl mb-2">🔒</Text>

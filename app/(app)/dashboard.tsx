@@ -1,3 +1,4 @@
+import SignalPreviewCard from "@/components/signal-preview";
 import { TIER_DISPLAY } from "@/constants/constants";
 import { TIER_COLORS } from "@/constants/profile";
 import { useAppSelector } from "@/hooks/hooks";
@@ -38,58 +39,6 @@ function StatCard({
       <Text className="text-white text-xl font-bold">{value}</Text>
       {sub && <Text className="text-neutral-600 text-xs mt-0.5">{sub}</Text>}
     </View>
-  );
-}
-
-function SignalPreviewCard({
-  signal,
-  onPress,
-}: {
-  signal: Signal;
-  onPress: () => void;
-}) {
-  const isLong = signal.direction === "Long";
-  const isLocked = signal.accessLevel !== "full";
-
-  return (
-    <Pressable
-      onPress={onPress}
-      className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-3"
-    >
-      <View className="flex-row justify-between items-center mb-2">
-        <View className="flex-row items-center gap-2">
-          <Text className="text-white font-bold">{signal.pair}</Text>
-          <Text className="text-neutral-600 text-xs">{signal.timeframe}</Text>
-        </View>
-
-        <View
-          className={`px-2.5 py-0.5 rounded-lg ${isLong ? "bg-emerald-500/15" : "bg-red-500/15"}`}
-        >
-          <Text
-            className={`text-xs font-semibold ${isLong ? "text-emerald-400" : "text-red-400"}`}
-          >
-            {signal.direction}
-          </Text>
-        </View>
-      </View>
-
-      {/* Confidence bar */}
-      <View className="h-1 bg-neutral-800 rounded-full overflow-hidden mb-2">
-        <View
-          style={{ width: `${signal.confidence}%` }}
-          className={`h-1 rounded-full ${isLong ? "bg-emerald-500" : "bg-red-500"}`}
-        />
-      </View>
-
-      <View className="flex-row justify-between items-center">
-        <Text className="text-neutral-500 text-xs">{signal.summary}</Text>
-        {isLocked && (
-          <View className="px-2 py-0.5 bg-neutral-800 rounded-md">
-            <Text className="text-neutral-500 text-xs">🔒</Text>
-          </View>
-        )}
-      </View>
-    </Pressable>
   );
 }
 
@@ -263,3 +212,5 @@ export default function DashboardScreen() {
     </View>
   );
 }
+
+// -----------
