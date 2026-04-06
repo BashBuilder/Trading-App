@@ -3,7 +3,7 @@ import { loginRequest } from "@/hooks/processes/auth-reducer";
 import { saveToken } from "@/services/token.service";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Image, Pressable, Text, TextInput, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function LoginScreen() {
@@ -46,10 +46,18 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 bg-slate-950 justify-center px-6">
+      <View className="flex-row items-center gap-2">
+        <Image
+          source={require("../../assets/images/elite-scope-icon.png")}
+          className="w-20 h-40"
+        />
+        <Text className="text-4xl font-bold text-white">Elite Scope</Text>
+      </View>
       {/* Title */}
       <View className="mb-10">
-        <Text className="text-4xl font-bold text-white">Welcome Back 👋</Text>
-        <Text className="text-slate-400 mt-2">Login to continue</Text>
+        <Text className="text-lg font-bold text-white">Welcome Back 👋</Text>
+        {/* <Text className="text-slate-400 mt-2">Login to continue</Text> */}
+        {/* <Text className="text-slate-400 mt-2">Welcome Back</Text> */}
       </View>
 
       {/* Card */}
