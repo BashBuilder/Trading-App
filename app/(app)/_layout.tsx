@@ -5,11 +5,16 @@ import { clearToken, getToken } from "@/services/token.service";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Platform, View } from "react-native";
+import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const insets = useSafeAreaInsets();
+
+  const TAB_BAR_HEIGHT = 60;
+  const BOTTOM_MARGIN = 12;
 
   const checkAuth = async () => {
     try {
@@ -38,7 +43,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           position: "absolute",
-          bottom: Platform.OS === "ios" ? 24 : 16,
+          bottom: BOTTOM_MARGIN + insets.bottom,
           left: 20,
           right: 20,
           elevation: 0,

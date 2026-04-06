@@ -1,12 +1,18 @@
 import { getToken } from "@/services/token.service";
 import axios from "axios";
 
-const API_URL =
-  process.env.PUBLIC_API_URL ||
-  "https://trading-app-backend-ilzd.onrender.com/api/v1/";
-// const API_URL =
-//   process.env.PUBLIC_API_URL ||
-//   "https://jeniffer-unavenging-centrodorsally.ngrok-free.dev/api/v1/";
+const ENVIRONMENT = process.env.ENVIRONMENT || "development";
+let API_URL = "";
+
+if (ENVIRONMENT === "development") {
+  API_URL =
+    process.env.PUBLIC_API_URL ||
+    "https://jeniffer-unavenging-centrodorsally.ngrok-free.dev/api/v1/";
+} else {
+  API_URL =
+    process.env.PUBLIC_API_URL ||
+    "https://trading-app-backend-ilzd.onrender.com/api/v1/";
+}
 
 axios.defaults.baseURL = API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";

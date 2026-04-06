@@ -21,7 +21,7 @@ import { useDispatch } from "react-redux";
 const BILLING_CYCLES: { key: BillingCycle; label: string }[] = [
   { key: "monthly", label: "Monthly" },
   { key: "annual", label: "Annual" },
-  { key: "oneTime", label: "Lifetime" },
+  // { key: "oneTime", label: "Lifetime" },
 ];
 
 export default function PaywallScreen() {
