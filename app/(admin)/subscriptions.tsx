@@ -445,7 +445,7 @@ export default function AdminSubscriptionsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await adminSubscriptionService.cancel(sub.user.email);
+              await adminSubscriptionService.cancel(sub.id);
               fetchData();
             } catch {
               Alert.alert("Error", "Failed to cancel subscription.");

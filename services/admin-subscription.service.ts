@@ -52,6 +52,7 @@ export const adminSubscriptionService = {
   },
 
   cancel: async (uid: string): Promise<void> => {
-    await axios.delete(`admin/subscriptions/${uid}`);
+    const sanitizeUid = encodeURIComponent(uid);
+    await axios.delete(`admin/subscriptions/${sanitizeUid}`);
   },
 };
