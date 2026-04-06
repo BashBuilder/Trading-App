@@ -2,6 +2,7 @@
 import { TierCard } from "@/components/card/TierCard";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { LINKS } from "@/config/links";
+import { BILLING_CYCLES } from "@/constants/constants";
 import { useAppSelector } from "@/hooks/hooks";
 import { updateSubscription } from "@/hooks/processes/subscription-reducer";
 import { subscriptionService } from "@/services/subscription.service";
@@ -17,12 +18,6 @@ import {
   View,
 } from "react-native";
 import { useDispatch } from "react-redux";
-
-const BILLING_CYCLES: { key: BillingCycle; label: string }[] = [
-  { key: "monthly", label: "Monthly" },
-  { key: "annual", label: "Annual" },
-  // { key: "oneTime", label: "Lifetime" },
-];
 
 export default function PaywallScreen() {
   const [tiers, setTiers] = useState<Tier[]>([]);

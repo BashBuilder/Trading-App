@@ -1,6 +1,6 @@
 // app/(admin)/index.tsx
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 
 const ADMIN_SECTIONS = [
   {
@@ -36,6 +36,11 @@ export default function AdminIndexScreen() {
     <View className="flex-1 bg-slate-950 px-6 pt-14">
       {/* Header */}
       <View className="mb-8">
+        <Image
+          source={require("../../assets/images/elite-scope-icon.png")}
+          alt="EliteScope"
+          className="w-10 h-20"
+        />
         <Text className="text-neutral-500 text-xs uppercase tracking-widest mb-1">
           EliteScope
         </Text>

@@ -1,4 +1,4 @@
-import { TierCapability } from "@/services/tier.service";
+import { BillingCycle, TierCapability } from "@/services/tier.service";
 
 export const TIER_DISPLAY: Record<string, string> = {
   explorer: "The Explorer",
@@ -37,3 +37,9 @@ export const STATUS_COLORS: Record<string, { text: string; bg: string }> = {
   closed: { text: "text-neutral-500", bg: "bg-neutral-800" },
   cancelled: { text: "text-red-400", bg: "bg-red-500/10" },
 };
+export const BILLING_CYCLES: { key: BillingCycle; label: string }[] = [
+  { key: "weekly", label: "Weekly" },
+  { key: "monthly", label: "Monthly" },
+  // { key: "annual", label: "Annual" },
+  // { key: "oneTime", label: "Lifetime" },
+];

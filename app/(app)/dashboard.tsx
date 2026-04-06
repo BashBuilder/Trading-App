@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -98,9 +99,16 @@ export default function DashboardScreen() {
           <Text className="text-neutral-500 text-sm">
             {getGreeting()}, {user?.firstName ?? "Trader"}
           </Text>
-          <Text className="text-white text-2xl font-bold mt-0.5">
-            Elite Scope Market Intelligence
-          </Text>
+          <View className="flex-row items-center gap-2">
+            <Image
+              source={require("../../assets/images/elite-scope-icon.png")}
+              alt="EliteScope"
+              className="w-8 h-16"
+            />
+            <Text className="text-white text-2xl font-bold mt-0.5">
+              Elite Scope Market Intelligence
+            </Text>
+          </View>
         </View>
 
         {/* ── Subscription banner / nudge ── */}
