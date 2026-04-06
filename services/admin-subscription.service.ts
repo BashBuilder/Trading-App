@@ -22,6 +22,13 @@ export interface AdminSubscription {
   };
 }
 
+export interface AdminUserOption {
+  uid: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export const adminSubscriptionService = {
   getAll: async (status?: string): Promise<AdminSubscription[]> => {
     const params = status && status !== "all" ? `?status=${status}` : "";
@@ -39,6 +46,11 @@ export const adminSubscriptionService = {
   getHistory: async (uid: string) => {
     const res = await axios.get(`admin/subscriptions/history/${uid}`);
     return res.data.payload;
+  },
+
+  getUsers: async (): Promise<AdminUserOption[]> => {
+    const res = await axios.get("auth/users");
+    return res.data;
   },
 
   add: async (payload: {

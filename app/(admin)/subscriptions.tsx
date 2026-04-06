@@ -1,6 +1,6 @@
 // app/(admin)/subscriptions.tsx
-import { STATUS_COLORS } from "@/constants/constants";
-import { TIER_COLORS } from "@/constants/profile";
+import AddSubscriptionModal from "@/components/modals/add-subscription";
+import { SubscriptionRow } from "@/components/subcrption-row";
 import {
   AdminSubscription,
   adminSubscriptionService,
@@ -120,268 +120,6 @@ function HistoryModal({
   );
 }
 
-function AddSubscriptionModal({
-  visible,
-  onClose,
-  onAdded,
-  tiers,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onAdded: () => void;
-  tiers: Tier[];
-}) {
-  // const { user } = useAppSelector((state) => state.auth);
-  const [uid, setUid] = useState("");
-  const [selectedTier, setSelectedTier] = useState<string>("explorer");
-  const [billingCycle, setBillingCycle] = useState<string>("monthly");
-  const [saving, setSaving] = useState(false);
-
-  const BILLING_CYCLES = ["weekly", "monthly", "annual", "oneTime", "custom"];
-  const [customDays, setCustomDays] = useState("30");
-
-  const handleAdd = async () => {
-    if (!uid.trim()) {
-      Alert.alert("Validation", "User UID is required.");
-      return;
-    }
-    setSaving(true);
-    try {
-      await adminSubscriptionService.add({
-        uid: uid.trim(),
-        tierId: selectedTier,
-        billingCycle: billingCycle as any,
-        durationDays:
-          billingCycle === "custom" ? parseInt(customDays) : undefined,
-      });
-      Alert.alert("Success", "Subscription added successfully.");
-      setUid("");
-      onAdded();
-      onClose();
-    } catch {
-      Alert.alert(
-        "Error",
-        "Failed to add subscription. Check the UID is correct.",
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-    >
-      <View className="flex-1 bg-slate-950">
-        <View className="pt-14 px-6 pb-4 border-b border-neutral-800 flex-row justify-between items-center">
-          <Text className="text-white text-xl font-bold">Add Subscription</Text>
-          <Pressable onPress={onClose}>
-            <Text className="text-neutral-400">Cancel</Text>
-          </Pressable>
-        </View>
-
-        <ScrollView
-          className="flex-1 px-6 pt-5"
-          contentContainerStyle={{ paddingBottom: 60 }}
-        >
-          {/* User UID */}
-          <View className="mb-4">
-            <Text className="text-neutral-500 text-xs mb-1">User UID</Text>
-            <TextInput
-              className="bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm"
-              placeholder="Firebase User UID"
-              placeholderTextColor="#525252"
-              value={uid}
-              onChangeText={setUid}
-              autoCapitalize="none"
-            />
-            <Text className="text-neutral-600 text-xs mt-1">
-              Find this in Firebase Auth or from subscription list
-            </Text>
-          </View>
-
-          {/* Tier selection */}
-          <View className="mb-4">
-            <Text className="text-neutral-500 text-xs mb-2">Tier</Text>
-            <View className="gap-2">
-              {tiers.map((tier) => (
-                <Pressable
-                  key={tier.id}
-                  onPress={() => setSelectedTier(tier.id)}
-                  className={`flex-row items-center justify-between px-4 py-3 rounded-xl border ${
-                    selectedTier === tier.id
-                      ? "bg-indigo-600/15 border-indigo-500/40"
-                      : "bg-neutral-900 border-neutral-800"
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-medium ${
-                      selectedTier === tier.id
-                        ? "text-white"
-                        : "text-neutral-400"
-                    }`}
-                  >
-                    {tier.name}
-                  </Text>
-                  {selectedTier === tier.id && (
-                    <Text className="text-indigo-400 text-xs">✓</Text>
-                  )}
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          {/* Billing cycle */}
-          <View className="mb-4">
-            <Text className="text-neutral-500 text-xs mb-2">Billing Cycle</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {BILLING_CYCLES.map((cycle) => (
-                <Pressable
-                  key={cycle}
-                  onPress={() => setBillingCycle(cycle)}
-                  className={`px-4 py-2 rounded-xl border ${
-                    billingCycle === cycle
-                      ? "bg-indigo-600 border-indigo-500"
-                      : "bg-neutral-900 border-neutral-800"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-medium capitalize ${
-                      billingCycle === cycle ? "text-white" : "text-neutral-400"
-                    }`}
-                  >
-                    {cycle === "oneTime" ? "Lifetime" : cycle}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          {/* Custom days */}
-          {billingCycle === "custom" && (
-            <View className="mb-4">
-              <Text className="text-neutral-500 text-xs mb-1">
-                Duration (days)
-              </Text>
-              <TextInput
-                className="bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white text-sm"
-                placeholder="30"
-                placeholderTextColor="#525252"
-                keyboardType="numeric"
-                value={customDays}
-                onChangeText={setCustomDays}
-              />
-            </View>
-          )}
-
-          <Pressable
-            onPress={handleAdd}
-            disabled={saving}
-            className="bg-indigo-600 py-4 rounded-2xl items-center mt-2"
-          >
-            {saving ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-white font-semibold">Add Subscription</Text>
-            )}
-          </Pressable>
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-}
-
-function SubscriptionRow({
-  key,
-  sub,
-  onCancel,
-  onViewHistory,
-}: {
-  key: string;
-  sub: AdminSubscription;
-  onCancel: () => void;
-  onViewHistory: () => void;
-}) {
-  const statusColor = STATUS_COLORS[sub?.status] ?? STATUS_COLORS.expired ?? "";
-  const tierColor = TIER_COLORS[sub.tierId] ?? "text-neutral-400";
-
-  return (
-    <View
-      key={key || "1"}
-      className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mb-3"
-    >
-      {/* User info */}
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1 mr-3">
-          <Text className="text-white font-semibold text-sm">
-            {[sub.user.firstName, sub.user.lastName]
-              .filter(Boolean)
-              .join(" ") || "—"}
-          </Text>
-          <Text className="text-neutral-500 text-xs mt-0.5">
-            {sub.user.email}
-          </Text>
-        </View>
-
-        <View className={`px-2.5 py-1 rounded-full ${statusColor.bg}`}>
-          <Text
-            className={`text-xs font-semibold capitalize ${statusColor.text}`}
-          >
-            {sub.status}
-          </Text>
-        </View>
-      </View>
-
-      {/* Subscription details */}
-      <View className="flex-row justify-between items-center mb-3 py-2.5 bg-neutral-800/50 rounded-xl px-3">
-        <View>
-          <Text className={`text-sm font-semibold ${tierColor?.text}`}>
-            {sub.tierName}
-          </Text>
-          <Text className="text-neutral-600 text-xs capitalize mt-0.5">
-            {sub.billingCycle === "oneTime" ? "Lifetime" : sub.billingCycle}
-            {sub.addedByAdmin && " · Admin added"}
-          </Text>
-        </View>
-        <View className="items-end">
-          <Text className="text-white text-sm font-bold">${sub.price}</Text>
-          {sub.expiresAt && (
-            <Text className="text-neutral-600 text-xs mt-0.5">
-              Exp.{" "}
-              {new Date(sub.expiresAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </Text>
-          )}
-        </View>
-      </View>
-
-      {/* Actions */}
-      <View className="flex-row gap-2">
-        <Pressable
-          onPress={onViewHistory}
-          className="flex-1 py-2 bg-neutral-800 border border-neutral-700 rounded-xl items-center"
-        >
-          <Text className="text-neutral-300 text-xs font-medium">History</Text>
-        </Pressable>
-
-        {sub.status === "active" && (
-          <Pressable
-            onPress={onCancel}
-            className="flex-1 py-2 bg-red-500/10 border border-red-500/20 rounded-xl items-center"
-          >
-            <Text className="text-red-400 text-xs font-medium">Cancel</Text>
-          </Pressable>
-        )}
-      </View>
-    </View>
-  );
-}
-
 export default function AdminSubscriptionsScreen() {
   const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<AdminSubscription[]>([]);
@@ -392,6 +130,11 @@ export default function AdminSubscriptionsScreen() {
   const [searchEmail, setSearchEmail] = useState("");
   const [searching, setSearching] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addDraft, setAddDraft] = useState<{
+    uid?: string;
+    tierId?: string;
+    billingCycle?: string;
+  }>({});
   const [historyUid, setHistoryUid] = useState<string | null>(null);
   const [historyName, setHistoryName] = useState("");
 
@@ -481,7 +224,10 @@ export default function AdminSubscriptionsScreen() {
               <Text className="text-neutral-400 text-xs">← Back</Text>
             </Pressable>
             <Pressable
-              onPress={() => setAddModalVisible(true)}
+              onPress={() => {
+                setAddDraft({});
+                setAddModalVisible(true);
+              }}
               className="px-4 py-2 bg-indigo-600 rounded-xl"
             >
               <Text className="text-white text-xs font-semibold">+ Add</Text>
@@ -595,6 +341,14 @@ export default function AdminSubscriptionsScreen() {
                 key={sub.uid}
                 sub={sub}
                 onCancel={() => handleCancel(sub)}
+                onAdd={() => {
+                  setAddDraft({
+                    uid: sub.uid,
+                    tierId: sub.tierId,
+                    billingCycle: sub.billingCycle,
+                  });
+                  setAddModalVisible(true);
+                }}
                 onViewHistory={() => {
                   setHistoryUid(sub.uid);
                   setHistoryName(
@@ -612,9 +366,15 @@ export default function AdminSubscriptionsScreen() {
       {/* Modals */}
       <AddSubscriptionModal
         visible={addModalVisible}
-        onClose={() => setAddModalVisible(false)}
+        onClose={() => {
+          setAddModalVisible(false);
+          setAddDraft({});
+        }}
         onAdded={fetchData}
         tiers={tiers}
+        initialUid={addDraft.uid}
+        initialTierId={addDraft.tierId}
+        initialBillingCycle={addDraft.billingCycle}
       />
 
       {historyUid && (
