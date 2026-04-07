@@ -1,7 +1,7 @@
 import { getToken } from "@/services/token.service";
 import axios from "axios";
 
-const ENVIRONMENT = process.env.ENVIRONMENT || "development";
+const ENVIRONMENT = process.env.ENVIRONMENT;
 let API_URL = "";
 
 if (ENVIRONMENT === "development") {
