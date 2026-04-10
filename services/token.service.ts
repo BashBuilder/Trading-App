@@ -21,9 +21,6 @@ export const getToken = async (): Promise<string | null> => {
   return await SecureStore.getItemAsync(TOKEN_KEY);
 };
 
-// export const getToken = async () => {
-//   return await SecureStore.getItemAsync(TOKEN_KEY);
-// };
 export const getExpiration = async () => {
   const exp = await SecureStore.getItemAsync(EXPIRATION_KEY);
   return exp ? parseInt(exp) : null;
@@ -40,3 +37,5 @@ export const isTokenExpired = async () => {
 
   return Date.now() > expiration;
 };
+
+// add some token event here
