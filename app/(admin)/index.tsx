@@ -39,7 +39,8 @@ export default function AdminIndexScreen() {
         <Image
           source={require("../../assets/images/elite-scope-icon.png")}
           alt="EliteScope"
-          className="w-10 h-20"
+          className="w-12 h-12 rounded-xl mb-3"
+          resizeMode="contain"
         />
         <Text className="text-neutral-500 text-xs uppercase tracking-widest mb-1">
           EliteScope

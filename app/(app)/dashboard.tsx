@@ -103,9 +103,10 @@ export default function DashboardScreen() {
             <Image
               source={require("../../assets/images/elite-scope-icon.png")}
               alt="EliteScope"
-              className="w-8 h-16"
+              className="w-9 h-9 rounded-lg"
+              resizeMode="contain"
             />
-            <Text className="text-white text-2xl font-bold mt-0.5">
+            <Text className="text-white text-xl font-bold mt-0.5 flex-1">
               Elite Scope Market Intelligence
             </Text>
           </View>
