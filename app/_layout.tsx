@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
+import { toastConfig } from "@/components/AppToast";
 import "../global.css";
 
 // Prevent the native splash (solid dark bg) from hiding until we're ready
@@ -72,7 +73,7 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }} />
       <AuthGate />
-      <Toast />
+      <Toast config={toastConfig} topOffset={60} />
     </Provider>
   );
 }

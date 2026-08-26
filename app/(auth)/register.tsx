@@ -87,9 +87,12 @@ export default function RegisterScreen() {
       }
       Toast.show({
         type: "success",
-        text1: "Account created successfully! Please login.",
+        text1: "Account created! Check your email for a code.",
       });
-      router.replace("/login");
+      router.replace({
+        pathname: "/verify-otp",
+        params: { email: formState.email },
+      });
     } catch (error: any) {
       Toast.show({
         type: "error",

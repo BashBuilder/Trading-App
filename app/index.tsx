@@ -136,8 +136,6 @@ export default function OnboardingScreen() {
 
   return (
     <View className="flex-1 bg-slate-950">
-      <Toast />
-
       {/* Top bar: brand + skip */}
       <View className="flex-row items-center justify-between px-6 pt-16 pb-2">
         <View className="flex-row items-center gap-2">

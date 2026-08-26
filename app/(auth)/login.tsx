@@ -34,7 +34,20 @@ export default function LoginScreen() {
     try {
       const data: any = await dispatch(loginRequest({ email, password }));
       if (data.meta.requestStatus === "rejected") {
-        throw new Error(data.payload as string);
+        const payload = data.payload;
+        // Unverified account — send them straight to the OTP screen instead of a dead-end error.
+        if (payload?.data?.emailVerified === false) {
+          Toast.show({
+            type: "info",
+            text1: "Please verify your email to continue",
+          });
+          router.push({
+            pathname: "/verify-otp",
+            params: { email: payload.data.email || email },
+          });
+          return;
+        }
+        throw new Error(payload?.message || "Login failed. Please try again.");
       }
 
       saveToken(data.payload.accessToken, 3600);
@@ -93,7 +106,7 @@ export default function LoginScreen() {
           </View>
 
           {/* Password */}
-          <View className="mb-6">
+          <View className="mb-2">
             <Text className="text-slate-400 mb-2 text-sm">Password</Text>
             <View className="flex-row items-center bg-slate-800 rounded-xl px-4">
               <Ionicons name="lock-closed-outline" size={18} color="#64748b" />
@@ -116,6 +129,14 @@ export default function LoginScreen() {
               </Pressable>
             </View>
           </View>
+
+          <Link href="/forgot-password" asChild>
+            <Pressable className="self-end mb-6">
+              <Text className="text-indigo-500 text-sm font-medium">
+                Forgot password?
+              </Text>
+            </Pressable>
+          </Link>
 
           {/* Login Button */}
           <Pressable

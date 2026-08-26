@@ -295,6 +295,14 @@ export default function ProfileScreen() {
         >
           <Text className="text-red-400 font-semibold">Sign Out</Text>
         </Pressable>
+
+        {/* ── Deactivate account ── */}
+        <Pressable
+          onPress={() => router.push("/deactivate-account")}
+          className="items-center mt-4"
+        >
+          <Text className="text-neutral-600 text-sm">Deactivate account</Text>
+        </Pressable>
       </ScrollView>
     </ScreenWrapper>
   );
