@@ -219,6 +219,7 @@ export default function TabLayout() {
       {/* ── Hidden routes (not tabs) ────────────────────────── */}
 
       {/* Hides the insights/[id] signal detail from tab bar */}
+      <Tabs.Screen name="deactivate-account" options={{ href: null }} />
       <Tabs.Screen name="insights/[id]" options={{ href: null }} />
       {/* <Tabs.Screen name="insight/[id]" options={{ href: null }} /> */}
     </Tabs>

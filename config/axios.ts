@@ -4,15 +4,19 @@ import axios from "axios";
 const ENVIRONMENT = process.env.ENVIRONMENT;
 let API_URL = "";
 
-if (ENVIRONMENT === "development") {
-  API_URL =
-    process.env.PUBLIC_API_URL ||
-    "https://jeniffer-unavenging-centrodorsally.ngrok-free.dev/api/v1/";
-} else {
-  API_URL =
-    process.env.PUBLIC_API_URL ||
-    "https://trading-app-backend-ilzd.onrender.com/api/v1/";
-}
+API_URL =
+  process.env.PUBLIC_API_URL ||
+  "https://jeniffer-unavenging-centrodorsally.ngrok-free.dev/api/v1/";
+
+// if (ENVIRONMENT === "development") {
+//   API_URL =
+//     process.env.PUBLIC_API_URL ||
+//     "https://jeniffer-unavenging-centrodorsally.ngrok-free.dev/api/v1/";
+// } else {
+//   API_URL =
+//     process.env.PUBLIC_API_URL ||
+//     "https://trading-app-backend-ilzd.onrender.com/api/v1/";
+// }
 
 axios.defaults.baseURL = API_URL;
 axios.defaults.headers.post["Content-Type"] = "application/json";
@@ -23,6 +27,10 @@ axios.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  console.log("environment", ENVIRONMENT);
+  console.log("API_URL", API_URL);
+
   return config;
 });
 
