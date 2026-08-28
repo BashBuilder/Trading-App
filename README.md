@@ -1,1 +1,3 @@
-#Official Trading App Frontend
+#EliteScope
+
+Officicial trading app documentation
