@@ -76,7 +76,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: "Home",
+          // title: "Home",
+          title: "",
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
@@ -103,7 +104,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tools"
         options={{
-          title: "Tools",
+          // title: "Tools",
+          title: "",
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
@@ -131,7 +133,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="insights/index"
         options={{
-          title: "Signals",
+          // title: "Signals",
+          title: "",
           tabBarIcon: ({ focused }) => (
             <View
               style={{
@@ -165,7 +168,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="paywall"
         options={{
-          title: "Pro",
+          // title: "Pro",
+          title: "",
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
@@ -192,7 +196,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          // title: "Profile",
+          title: "",
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
