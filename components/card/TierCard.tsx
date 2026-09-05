@@ -166,6 +166,9 @@ interface TierCardProps {
   isActive?: boolean;
   isCancelled?: boolean;
   isLoading?: boolean;
+  /** Live, localized App Store price string from RevenueCat (e.g. "$29.99") — takes
+   * priority over tier.price so what's shown always matches what Apple actually charges. */
+  livePriceLabel?: string;
 }
 
 const CAPABILITY_LABELS: Record<string, string> = {
@@ -211,6 +214,7 @@ export function TierCard({
   isActive,
   isCancelled,
   isLoading,
+  livePriceLabel,
 }: TierCardProps) {
   const price = tier.price[billingCycle];
   const saving = SAVINGS[billingCycle];
@@ -283,7 +287,7 @@ export function TierCard({
       <View className="flex-row justify-between items-center pt-3 border-t border-neutral-800">
         <View>
           <Text className="text-white text-xl font-bold">
-            ${price?.toFixed(2) ?? "—"}
+            {livePriceLabel ?? `$${price?.toFixed(2) ?? "—"}`}
           </Text>
           <Text className="text-neutral-500 text-xs">
             {CYCLE_LABEL[billingCycle]}

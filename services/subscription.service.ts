@@ -49,4 +49,11 @@ export const subscriptionService = {
   cancel: async (): Promise<void> => {
     await axios.post("subscriptions/cancel");
   },
+
+  /** Pulls the latest entitlement state directly from RevenueCat via the backend —
+   * call this right after a purchase/restore so the UI doesn't wait on webhook latency. */
+  sync: async (): Promise<{ tier: TierId }> => {
+    const res = await axios.post("subscriptions/sync");
+    return res.data.payload;
+  },
 };

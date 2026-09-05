@@ -188,6 +188,14 @@ const mySlice = createSlice({
     updateUser: (state, action) => {
       state.user = action.payload;
     },
+    // Populates redux from an existing valid token on cold app launch — see AuthGate in
+    // app/_layout.tsx. Without this, a returning already-logged-in user has no `user.uid`
+    // in redux until their next fresh login, which broke RevenueCat identification.
+    hydrateAuth: (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.isAuthenticated = true;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -216,5 +224,5 @@ const mySlice = createSlice({
   },
 });
 
-export const { logout, updateUser } = mySlice.actions;
+export const { logout, updateUser, hydrateAuth } = mySlice.actions;
 export const authReducer = mySlice.reducer;

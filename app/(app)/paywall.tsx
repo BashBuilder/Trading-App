@@ -2,11 +2,18 @@
 import { TierCard } from "@/components/card/TierCard";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { LINKS } from "@/config/links";
-import { BILLING_CYCLES } from "@/constants/constants";
 import { useAppSelector } from "@/hooks/hooks";
 import { updateSubscription } from "@/hooks/processes/subscription-reducer";
+import {
+  findPackage,
+  getCurrentOffering,
+  openManageSubscriptions,
+  purchasePackage,
+  restorePurchases,
+} from "@/services/purchases.service";
 import { subscriptionService } from "@/services/subscription.service";
-import { BillingCycle, Tier } from "@/services/tier.service";
+import { Tier } from "@/services/tier.service";
+import { PurchasesOffering } from "react-native-purchases";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,11 +26,22 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 
+// Only monthly plans exist today — see RevenueCat-Mapping.md. Weekly/annual can be
+// re-enabled by restoring the billing-cycle toggle here once those products exist.
+const BILLING_CYCLE = "monthly" as const;
+
+// Maps a purchasable tier to its RevenueCat package identifier (the "custom identifier"
+// convention set up in the Offering — see RevenueCat-Mapping.md).
+const PACKAGE_ID_BY_TIER: Record<string, string> = {
+  strategist: "strategist_monthly",
+  mathematician: "mathematician_monthly",
+};
+
 export default function PaywallScreen() {
   const [tiers, setTiers] = useState<Tier[]>([]);
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loadingTierId, setLoadingTierId] = useState<string | null>(null);
-  const [cancelling, setCancelling] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const dispatch = useDispatch();
   const { subscription } = useAppSelector((state) => state.subscription);
@@ -35,11 +53,13 @@ export default function PaywallScreen() {
   const fetchData = async () => {
     try {
       setPageLoading(true);
-      const [tiersData, subData] = await Promise.all([
+      const [tiersData, subData, currentOffering] = await Promise.all([
         subscriptionService.getTiers(),
         subscriptionService.getCurrent(),
+        getCurrentOffering(),
       ]);
       setTiers(tiersData);
+      setOffering(currentOffering);
       dispatch(updateSubscription(subData));
     } catch (err) {
       Alert.alert("Error", "Failed to load subscription data.");
@@ -49,75 +69,78 @@ export default function PaywallScreen() {
   };
 
   const handleSubscribe = async (tierId: string) => {
-    // If already active on same tier, do nothing
-    if (subscription?.tierId === tierId && subscription?.status === "active")
+    // Explorer is the free default tier — there's no product to purchase for it.
+    // Downgrading away from a paid plan happens via Apple's subscription management (see below).
+    if (tierId === "explorer") {
+      Alert.alert(
+        "Explorer is free",
+        "Explorer is the default tier — no purchase needed. To move off a paid plan, manage your subscription through Apple.",
+      );
       return;
+    }
 
-    Alert.alert(
-      "Confirm Subscription",
-      `Subscribe to ${tiers.find((t) => t.id === tierId)?.name} (${billingCycle})?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Confirm",
-          onPress: async () => {
-            try {
-              setLoadingTierId(tierId);
-              const sub = await subscriptionService.subscribe(
-                tierId as any,
-                billingCycle,
-              );
-              dispatch(updateSubscription(sub));
-              // setCurrentSub(sub);
-              Alert.alert("Success", "Your subscription is now active.");
-            } catch (error: any) {
-              Alert.alert(
-                "Error",
-                JSON.stringify(error.response?.data?.message || error.body) ||
-                  "Subscription failed. Please try again.",
-              );
-            } finally {
-              setLoadingTierId(null);
-            }
-          },
-        },
-      ],
-    );
+    if (subscription?.tierId === tierId && subscription?.status === "active") {
+      return;
+    }
+
+    const packageId = PACKAGE_ID_BY_TIER[tierId];
+    const pkg = offering?.availablePackages.find((p) => p.identifier === packageId);
+
+    if (!pkg) {
+      Alert.alert(
+        "Unavailable",
+        "This plan isn't available for purchase right now. Please try again shortly.",
+      );
+      return;
+    }
+
+    setLoadingTierId(tierId);
+    try {
+      const result = await purchasePackage(pkg);
+
+      if (result.status === "cancelled") {
+        return; // user backed out of Apple's payment sheet — not an error
+      }
+      if (result.status === "error") {
+        Alert.alert("Purchase failed", result.message);
+        return;
+      }
+
+      // Sync immediately rather than waiting on webhook delivery to reflect the new tier.
+      const synced = await subscriptionService.sync();
+      const subData = await subscriptionService.getCurrent();
+      dispatch(updateSubscription(subData));
+
+      Alert.alert("Success", `You're now on the ${synced.tier} plan.`);
+    } finally {
+      setLoadingTierId(null);
+    }
   };
 
-  const handleCancel = () => {
-    Alert.alert(
-      "Cancel Subscription",
-      "Your access will continue until the end of the current billing period. Are you sure?",
-      [
-        { text: "Keep Plan", style: "cancel" },
-        {
-          text: "Cancel Plan",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setCancelling(true);
-              await subscriptionService.cancel();
-              dispatch(
-                updateSubscription(
-                  subscription
-                    ? { ...subscription, status: "cancelled" }
-                    : null,
-                ),
-              );
-              Alert.alert(
-                "Cancelled",
-                "Your subscription has been cancelled. Access remains until the billing period ends.",
-              );
-            } catch {
-              Alert.alert("Error", "Failed to cancel. Please try again.");
-            } finally {
-              setCancelling(false);
-            }
-          },
-        },
-      ],
-    );
+  const handleManageSubscription = async () => {
+    // Real App Store subscriptions can only be cancelled through Apple's own management
+    // UI — apps aren't permitted to cancel them via a custom in-app flow.
+    await openManageSubscriptions();
+  };
+
+  const handleRestore = async () => {
+    setRestoring(true);
+    try {
+      await restorePurchases();
+      const synced = await subscriptionService.sync();
+      const subData = await subscriptionService.getCurrent();
+      dispatch(updateSubscription(subData));
+      Alert.alert(
+        "Restored",
+        synced.tier === "explorer"
+          ? "No previous purchases were found for this account."
+          : `Your ${synced.tier} plan has been restored.`,
+      );
+    } catch {
+      Alert.alert("Error", "Failed to restore purchases. Please try again.");
+    } finally {
+      setRestoring(false);
+    }
   };
 
   const formatExpiry = (expiresAt: string | null) => {
@@ -127,6 +150,12 @@ export default function PaywallScreen() {
       day: "numeric",
       year: "numeric",
     });
+  };
+
+  const priceLabelFor = (tierId: string) => {
+    const packageId = PACKAGE_ID_BY_TIER[tierId];
+    const pkg = offering?.availablePackages.find((p) => p.identifier === packageId);
+    return pkg?.product.priceString;
   };
 
   return (
@@ -164,11 +193,12 @@ export default function PaywallScreen() {
                   <Text className="text-white font-semibold text-base">
                     {subscription.tierName}
                   </Text>
-                  <Text className="text-neutral-500 text-xs mt-0.5 capitalize">
-                    {subscription.billingCycle === "oneTime"
-                      ? "Lifetime access"
-                      : `${subscription.billingCycle} · Renews ${formatExpiry(subscription.expiresAt)}`}
-                  </Text>
+                  {subscription.tierId !== "explorer" && (
+                    <Text className="text-neutral-500 text-xs mt-0.5 capitalize">
+                      {subscription.billingCycle} · Renews{" "}
+                      {formatExpiry(subscription.expiresAt)}
+                    </Text>
+                  )}
                 </View>
 
                 <View
@@ -190,59 +220,27 @@ export default function PaywallScreen() {
                 </View>
               </View>
 
-              {/* Cancel link — only show if active and not lifetime */}
-              {subscription.status === "active" &&
-                subscription.billingCycle !== "oneTime" && (
+              {/* Manage/cancel — only for real paid subscriptions, via Apple's own UI */}
+              {subscription.tierId !== "explorer" &&
+                subscription.status === "active" && (
                   <Pressable
-                    onPress={handleCancel}
-                    disabled={cancelling}
+                    onPress={handleManageSubscription}
                     className="mt-3 pt-3 border-t border-neutral-800"
                   >
                     <Text className="text-red-400 text-xs">
-                      {cancelling ? "Cancelling..." : "Cancel subscription"}
+                      Manage or cancel subscription
                     </Text>
                   </Pressable>
                 )}
             </View>
           )}
 
-          {/* Billing cycle toggle */}
-          <View className="flex-row bg-neutral-900 border border-neutral-800 rounded-xl p-1 mb-6">
-            {BILLING_CYCLES.map(({ key, label }) => (
-              <Pressable
-                key={key}
-                onPress={() => setBillingCycle(key)}
-                className={`flex-1 py-2 rounded-lg items-center ${
-                  billingCycle === key ? "bg-neutral-700" : ""
-                }`}
-              >
-                <Text
-                  className={`text-sm font-medium ${
-                    billingCycle === key ? "text-white" : "text-neutral-500"
-                  }`}
-                >
-                  {label}
-                </Text>
-                {key === "annual" && (
-                  <Text className="text-emerald-400 text-[9px] mt-0.5">
-                    33% off
-                  </Text>
-                )}
-                {key === "oneTime" && (
-                  <Text className="text-violet-400 text-[9px] mt-0.5">
-                    Best value
-                  </Text>
-                )}
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Tier cards */}
+          {/* Tier cards — monthly only for now */}
           {tiers.map((tier) => (
             <TierCard
               key={tier.id}
               tier={tier}
-              billingCycle={billingCycle}
+              billingCycle={BILLING_CYCLE}
               isActive={
                 subscription?.tierId === tier.id &&
                 subscription?.status !== "expired"
@@ -252,14 +250,19 @@ export default function PaywallScreen() {
                 subscription?.status === "cancelled"
               }
               isLoading={loadingTierId === tier.id}
+              livePriceLabel={priceLabelFor(tier.id)}
               onSelect={() => handleSubscribe(tier.id)}
             />
           ))}
 
           {/* Restore */}
-          <Pressable onPress={fetchData} className="items-center mt-2 mb-6">
+          <Pressable
+            onPress={handleRestore}
+            disabled={restoring}
+            className="items-center mt-2 mb-6"
+          >
             <Text className="text-neutral-500 text-xs underline">
-              Restore Purchases
+              {restoring ? "Restoring..." : "Restore Purchases"}
             </Text>
           </Pressable>
 
