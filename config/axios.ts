@@ -4,8 +4,6 @@ import axios from "axios";
 const ENVIRONMENT = process.env.EXPO_PUBLIC_ENVIRONMENT;
 let API_URL = "";
 
-console.log("ENVIRONMENT", ENVIRONMENT);
-
 if (ENVIRONMENT === "development") {
   API_URL =
     process.env.EXPO_PUBLIC_API_URL ||
