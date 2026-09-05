@@ -7,6 +7,7 @@ import { updateSubscription } from "@/hooks/processes/subscription-reducer";
 import {
   findPackage,
   getCurrentOffering,
+  getPurchasesUnavailableReason,
   openManageSubscriptions,
   purchasePackage,
   restorePurchases,
@@ -37,12 +38,26 @@ const PACKAGE_ID_BY_TIER: Record<string, string> = {
   mathematician: "mathematician_monthly",
 };
 
+// Shown when purchases can't load an offering — worded to match the actual cause instead
+// of a generic "try again" that won't fix anything if the cause is the runtime itself.
+const UNAVAILABLE_BANNER: Record<string, string> = {
+  "native-module-missing":
+    "In-app purchases can't run in Expo Go. Open a development build, TestFlight, or the App Store build to subscribe.",
+  "no-api-key":
+    "In-app purchases aren't configured for this build yet (missing RevenueCat API key).",
+  "configure-failed":
+    "In-app purchases failed to start. Restart the app — if this keeps happening, check the RevenueCat setup.",
+  "no-offering":
+    "Plans aren't available to purchase right now. Please try again shortly.",
+};
+
 export default function PaywallScreen() {
   const [tiers, setTiers] = useState<Tier[]>([]);
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loadingTierId, setLoadingTierId] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [unavailableKey, setUnavailableKey] = useState<string | null>(null);
   const dispatch = useDispatch();
   const { subscription } = useAppSelector((state) => state.subscription);
 
@@ -61,6 +76,17 @@ export default function PaywallScreen() {
       setTiers(tiersData);
       setOffering(currentOffering);
       dispatch(updateSubscription(subData));
+
+      // Work out *why* purchases might not be usable, so the banner below matches the
+      // real cause instead of a generic "unavailable" the person can't act on.
+      const reason = getPurchasesUnavailableReason();
+      if (reason) {
+        setUnavailableKey(reason);
+      } else if (!currentOffering) {
+        setUnavailableKey("no-offering");
+      } else {
+        setUnavailableKey(null);
+      }
     } catch (err) {
       Alert.alert("Error", "Failed to load subscription data.");
     } finally {
@@ -89,7 +115,7 @@ export default function PaywallScreen() {
     if (!pkg) {
       Alert.alert(
         "Unavailable",
-        "This plan isn't available for purchase right now. Please try again shortly.",
+        UNAVAILABLE_BANNER[unavailableKey ?? "no-offering"],
       );
       return;
     }
@@ -181,6 +207,18 @@ export default function PaywallScreen() {
             Structured analytical tools for disciplined market observation.
             Unlock full access with a tier that matches your strategy.
           </Text>
+
+          {/* Purchases-unavailable banner — explains *why* instead of failing silently on tap */}
+          {unavailableKey && (
+            <View className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-6">
+              <Text className="text-amber-400 text-xs font-medium uppercase tracking-widest mb-1">
+                Purchases unavailable
+              </Text>
+              <Text className="text-amber-200/90 text-xs leading-4">
+                {UNAVAILABLE_BANNER[unavailableKey]}
+              </Text>
+            </View>
+          )}
 
           {/* Current plan banner */}
           {subscription && subscription.status !== "expired" && (
