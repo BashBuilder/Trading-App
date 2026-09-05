@@ -6,9 +6,10 @@ import Purchases, {
   PurchasesPackage,
 } from "react-native-purchases";
 
-// Same env-var convention already used for PUBLIC_API_URL in config/axios.ts.
-const REVENUECAT_IOS_KEY = process.env.PUBLIC_REVENUECAT_IOS_KEY || "";
-const REVENUECAT_ANDROID_KEY = process.env.PUBLIC_REVENUECAT_ANDROID_KEY || "";
+// Same env-var convention already used for EXPO_PUBLIC_API_URL in config/axios.ts.
+const REVENUECAT_IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || "";
+const REVENUECAT_ANDROID_KEY =
+  process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || "";
 
 let isConfigured = false;
 
@@ -16,10 +17,11 @@ let isConfigured = false;
 export function configurePurchases() {
   if (isConfigured) return;
 
-  const apiKey = Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
+  const apiKey =
+    Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
   if (!apiKey) {
     console.warn(
-      `[purchases] No RevenueCat key set for ${Platform.OS} — in-app purchases are disabled until PUBLIC_REVENUECAT_${Platform.OS.toUpperCase()}_KEY is configured.`,
+      `[purchases] No RevenueCat key set for ${Platform.OS} — in-app purchases are disabled until EXPO_PUBLIC_REVENUECAT_${Platform.OS.toUpperCase()}_KEY is configured.`,
     );
     return;
   }
@@ -64,7 +66,9 @@ export async function findPackage(
   identifier: string,
 ): Promise<PurchasesPackage | null> {
   const offering = await getCurrentOffering();
-  return offering?.availablePackages.find((p) => p.identifier === identifier) ?? null;
+  return (
+    offering?.availablePackages.find((p) => p.identifier === identifier) ?? null
+  );
 }
 
 export type PurchaseOutcome =
@@ -72,7 +76,9 @@ export type PurchaseOutcome =
   | { status: "cancelled" }
   | { status: "error"; message: string };
 
-export async function purchasePackage(pkg: PurchasesPackage): Promise<PurchaseOutcome> {
+export async function purchasePackage(
+  pkg: PurchasesPackage,
+): Promise<PurchaseOutcome> {
   try {
     const { customerInfo } = await Purchases.purchasePackage(pkg);
     return { status: "success", customerInfo };
