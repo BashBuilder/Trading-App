@@ -5,7 +5,6 @@ import { LINKS } from "@/config/links";
 import { useAppSelector } from "@/hooks/hooks";
 import { updateSubscription } from "@/hooks/processes/subscription-reducer";
 import {
-  findPackage,
   getCurrentOffering,
   getPurchasesUnavailableReason,
   openManageSubscriptions,
@@ -184,6 +183,22 @@ export default function PaywallScreen() {
     return pkg?.product.priceString;
   };
 
+  // Dev-only: when the offering loaded but a specific tier's package didn't resolve,
+  // show exactly what identifiers ARE available instead of a silent "stuck loading".
+  // This only renders in a development build (npx expo start --dev-client) — it's
+  // stripped out of preview/production builds since __DEV__ is false there.
+  const missingPackageHint = (tierId: string) => {
+    if (!__DEV__ || !offering) return null;
+    const packageId = PACKAGE_ID_BY_TIER[tierId];
+    if (!packageId) return null;
+    const found = offering.availablePackages.some((p) => p.identifier === packageId);
+    if (found) return null;
+    const available = offering.availablePackages.map((p) => p.identifier);
+    return `Expected package "${packageId}" — offering has: ${
+      available.length ? available.join(", ") : "(no packages at all)"
+    }`;
+  };
+
   return (
     <ScreenWrapper
       onRefresh={fetchData}
@@ -275,22 +290,28 @@ export default function PaywallScreen() {
 
           {/* Tier cards — monthly only for now */}
           {tiers.map((tier) => (
-            <TierCard
-              key={tier.id}
-              tier={tier}
-              billingCycle={BILLING_CYCLE}
-              isActive={
-                subscription?.tierId === tier.id &&
-                subscription?.status !== "expired"
-              }
-              isCancelled={
-                subscription?.tierId === tier.id &&
-                subscription?.status === "cancelled"
-              }
-              isLoading={loadingTierId === tier.id}
-              livePriceLabel={priceLabelFor(tier.id)}
-              onSelect={() => handleSubscribe(tier.id)}
-            />
+            <View key={tier.id}>
+              <TierCard
+                tier={tier}
+                billingCycle={BILLING_CYCLE}
+                isActive={
+                  subscription?.tierId === tier.id &&
+                  subscription?.status !== "expired"
+                }
+                isCancelled={
+                  subscription?.tierId === tier.id &&
+                  subscription?.status === "cancelled"
+                }
+                isLoading={loadingTierId === tier.id}
+                livePriceLabel={priceLabelFor(tier.id)}
+                onSelect={() => handleSubscribe(tier.id)}
+              />
+              {missingPackageHint(tier.id) && (
+                <Text className="text-amber-500/70 text-[10px] -mt-3 mb-4 px-1">
+                  ⚠ {missingPackageHint(tier.id)}
+                </Text>
+              )}
+            </View>
           ))}
 
           {/* Restore */}

@@ -97,6 +97,19 @@ export async function getCurrentOffering(): Promise<PurchasesOffering | null> {
           "Packages attached with the identifiers the app expects (see PACKAGE_ID_BY_TIER in " +
           "app/(app)/paywall.tsx).",
       );
+    } else if (__DEV__) {
+      // Log exactly what RevenueCat actually resolved, so a package-identifier or
+      // product-metadata mismatch shows up here instead of as a silent "stuck loading".
+      console.log(
+        "[purchases] current offering:",
+        offerings.current.identifier,
+        "packages:",
+        offerings.current.availablePackages.map((p) => ({
+          packageIdentifier: p.identifier,
+          productIdentifier: p.product.identifier,
+          price: p.product.priceString,
+        })),
+      );
     }
     return offerings.current;
   } catch (error) {
@@ -115,9 +128,20 @@ export async function findPackage(
   identifier: string,
 ): Promise<PurchasesPackage | null> {
   const offering = await getCurrentOffering();
-  return (
-    offering?.availablePackages.find((p) => p.identifier === identifier) ?? null
-  );
+  const match =
+    offering?.availablePackages.find((p) => p.identifier === identifier) ?? null;
+
+  if (!match && offering && __DEV__) {
+    console.warn(
+      `[purchases] No package with identifier "${identifier}" in the current offering. ` +
+        `Available identifiers: ${offering.availablePackages.map((p) => p.identifier).join(", ") || "(none)"}. ` +
+        "Check the Package's identifier in RevenueCat → Offerings, or whether the underlying " +
+        "product is still resolving from App Store Connect (status must be at least \"Ready to " +
+        "Submit\", and — for a brand new app — attached to a build submitted at least once).",
+    );
+  }
+
+  return match;
 }
 
 export type PurchaseOutcome =
