@@ -45,9 +45,3 @@ this chain end to end:
 
 If any of these drift out of sync, `getOfferings()` will succeed but return no matching
 package, and the paywall will show "Unavailable" even outside Expo Go.
-
-### Backend also needs
-
-- `REVENUECAT_SECRET_KEY` — server-only, from RevenueCat → Project Settings → API Keys
-- `REVENUECAT_WEBHOOK_SECRET` — must match the Authorization header value you set when
-  adding the webhook URL in RevenueCat → Project Settings → Integrations → Webhooks
